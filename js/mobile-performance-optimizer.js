@@ -241,8 +241,7 @@ class MobilePerformanceOptimizer {
             './character-gallery.js',
             './export-import.js',
             './whats-new.js',
-            './about.js',
-            './help.js'
+            './about.js'
         ];
 
         // Load these modules only when needed or after initial render
