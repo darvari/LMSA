@@ -7,7 +7,6 @@ import { setActionToPerform } from './shared-state.js';
 /**
  * Resets the entire application to its default state
  * - Deletes all chats
- * - Deletes all saved characters
  * - Clears all saved settings including server connection settings
  * - Resets the app to its default state
  */
@@ -18,9 +17,7 @@ export function resetApp() {
         // 1. Clear all chats
         clearAllChats();
 
-        // 2. Delete all saved characters
-        localStorage.removeItem('charactersData');
-        localStorage.removeItem('activeCharacterId');
+        // 2. Character functionality removed
 
         // 3. Clear all saved settings
         localStorage.removeItem('systemPrompt');

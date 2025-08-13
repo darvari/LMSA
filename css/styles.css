@@ -289,7 +289,6 @@ body.preview-mode {
 
 /* Welcome screen button styling for consistent height */
 #get-started-btn,
-#welcome-character-gallery-btn,
 #welcome-models-btn {
   height: 42px !important;
   min-height: 42px !important;
@@ -1049,8 +1048,6 @@ body.light-theme #loaded-model {
   height: 100vh !important;
 }
 
-/* Fix for character gallery on Android */
-.android-webview #character-gallery-modal {
   position: fixed;
   height: 100vh !important;
   max-height: 100vh !important;
@@ -3846,8 +3843,6 @@ body.light-theme #clear-system-prompt-modal #close-clear-system-prompt-modal:hov
         width: 100% !important; /* Full width */
     }
 
-    /* Special handling for delete character modal to ensure it's centered */
-    #delete-character-modal {
         padding: 0 !important;
         display: flex !important;
         align-items: center !important;
@@ -3862,8 +3857,6 @@ body.light-theme #clear-system-prompt-modal #close-clear-system-prompt-modal:hov
         overflow-x: hidden;
     }
 
-    /* Specific styling for delete character modal content */
-    #delete-character-modal .modal-content {
         margin: auto !important; /* Center both horizontally and vertically */
         transform: none !important; /* Prevent any transforms that might affect centering */
     }
@@ -4479,8 +4472,6 @@ body.light-theme .regenerate-btn:hover {
         height: calc(44px + 16px); /* Fixed height: input height + padding */
     }
 
-    /* Match active character display padding */
-    #active-character-display {
         padding: 8px 10px !important;
     }
 
@@ -4656,7 +4647,7 @@ body.light-theme .regenerate-btn:hover {
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Slightly stronger shadow */
-    z-index: 15; /* Increased z-index to be higher than active-character-display */
+    z-index: 15;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease, background-color 0.3s ease;

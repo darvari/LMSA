@@ -115,33 +115,6 @@ export const aboutButton = document.getElementById('about-btn');
 export const modelButton = document.getElementById('model-btn');
 export const newChatHeaderButton = document.getElementById('new-chat-header-button');
 
-// Character elements
-export const charactersButton = document.getElementById('characters-btn');
-export const characterModal = document.getElementById('character-modal');
-export const closeCharacterButton = document.getElementById('close-character');
-
-export const createCharacterButton = document.getElementById('create-character-btn');
-export const saveCharacterButton = document.getElementById('save-character');
-export const characterNameInput = document.getElementById('character-name');
-export const characterDescriptionInput = document.getElementById('character-description');
-export const characterPersonalityInput = document.getElementById('character-personality');
-export const characterScenarioInput = document.getElementById('character-scenario');
-
-export const characterImageUpload = document.getElementById('character-image-upload');
-export const characterCardUpload = document.getElementById('character-card-upload');
-export const deleteCharacterButton = document.getElementById('delete-character');
-export const characterPreviewImage = document.getElementById('character-preview-image');
-export const characterForm = document.getElementById('character-form');
-export const activeCharacterDisplay = document.getElementById('active-character-display');
-
-// Delete character confirmation modal elements
-export const deleteCharacterModal = document.getElementById('delete-character-modal');
-export const closeDeleteCharacterModalButton = document.getElementById('close-delete-character-modal');
-export const cancelDeleteCharacterButton = document.getElementById('cancel-delete-character');
-export const confirmDeleteCharacterButton = document.getElementById('confirm-delete-character');
-export const deleteCharacterAvatar = document.getElementById('delete-character-avatar');
-export const deleteCharacterName = document.getElementById('delete-character-name');
-export const deleteCharacterDescription = document.getElementById('delete-character-description');
 
 // Import/Export group elements
 export const importExportGroupButton = document.getElementById('import-export-group-btn');
@@ -220,18 +193,7 @@ export const modelLoadingTitle = document.getElementById('model-loading-title');
 export const modelLoadingMessage = document.getElementById('model-loading-message');
 export const modelLoadingName = document.getElementById('model-loading-name');
 
-// Character Gallery elements
-export const characterGalleryButton = document.getElementById('character-gallery-btn');
-export const characterGalleryContainer = document.getElementById('character-gallery-container');
-export const characterGalleryBackButton = document.getElementById('character-gallery-back-btn');
-export const characterGalleryCreateButton = document.getElementById('character-gallery-create-btn');
-export const characterGalleryImportButton = document.getElementById('character-gallery-import-btn');
-export const characterGalleryImportInput = document.getElementById('character-gallery-import-input');
-export const characterGalleryGrid = document.getElementById('character-gallery-grid');
-export const characterGalleryEmpty = document.getElementById('character-gallery-empty');
-
 // Welcome screen buttons
-export const welcomeCharacterGalleryBtn = document.getElementById('welcome-character-gallery-btn');
 export const welcomeModelsBtn = document.getElementById('welcome-models-btn');
 export const welcomeNewChatBtn = document.getElementById('welcome-new-chat-btn');
 export const welcomeHelpBtn = document.getElementById('welcome-help-btn');

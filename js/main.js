@@ -15,8 +15,6 @@ import { initializeExportImport } from './export-import.js';
 import { initializeModelManager } from './model-manager.js';
 import { initializeWhatsNew } from './whats-new.js';
 import { initializeSettingsModal } from './settings-modal-manager.js';
-import { initializeCharacterManager } from './character-manager.js';
-import { initializeCharacterGallery } from './character-gallery.js';
 import { memoryManager } from './memory-manager.js';
 import { messageCache } from './message-cache.js';
 import { chatHistoryOptimizer } from './chat-history-optimizer.js';
@@ -168,11 +166,8 @@ async function initializeApp() {
     initializeCollapsibleSections();
     initializeSettingsModal();
     
-    loadingManager.updateFeatureProgress('character-system');
     initializeExportImport();
     initializeWhatsNew();
-    initializeCharacterManager();
-    initializeCharacterGallery();
     
     updateConfirmationModalTheme();
     updateExportImportModalsTheme();

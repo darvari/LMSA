@@ -7,14 +7,14 @@ import {
     helpButton, newChatHeaderButton, whatsNewButton, aboutButton, stopButton, contextMenu, copyTextButton,
     regenerateTextButton, exitButton, refreshButton, modelToggleButton, loadedModelDisplay,
     settingsIconButton, newTopicButton, sendButton, sendContextMenu, newTopicMenuButton, scrollToBottomMenuButton,
-    modelButton, importExportGroupButton, importExportContainer, charactersButton, activeCharacterDisplay,
-    characterGalleryButton, welcomeCharacterGalleryBtn, welcomeModelsBtn, welcomeNewChatBtn, welcomeHelpBtn
+    modelButton, importExportGroupButton, importExportContainer,
+    welcomeModelsBtn, welcomeNewChatBtn, welcomeHelpBtn
 } from './dom-elements.js';
 import { showSettingsModal, hideSettingsModal } from './settings-modal-manager.js';
 import {
     showWelcomeMessage, hideWelcomeMessage, toggleSidebar, closeSidebar, showLoadingIndicator,
     hideLoadingIndicator, toggleSendStopButton, hideConfirmationModal, showConfirmationModal,
-    getSelectedText, getSelectedMessageElement, appendMessage, updateActiveCharacterDisplay
+    getSelectedText, getSelectedMessageElement, appendMessage
 } from './ui-manager.js';
 import {
     generateAIResponse,
@@ -37,16 +37,12 @@ import {
     addUserMessageToHistory
 } from './chat-service.js';
 import { resetApp, initializeResetAppButton } from './reset-app.js';
-import { getActiveCharacter, getCharactersData } from './character-manager.js';
-import { showCharacterGallery } from './character-gallery.js';
 import { fetchAvailableModels, isServerRunning, getAvailableModels } from './api-service.js';
 import { resetUploadedFiles, getUploadedFiles, uploadFilesToLMStudio } from './file-upload.js';
 import { setActionToPerform, getActionToPerform } from './shared-state.js';
 import { closeSidebarExport } from './export-import.js';
 import { showModelModal } from './model-manager.js';
 import { showWhatsNewModal } from './whats-new.js';
-import { showCreateCharacterModal } from './character-manager.js';
-import { handleNewChatButtonClick } from './character-continuation-modal.js';
 import { debugLog, debugError, formatDate } from './utils.js';
 import { closeApplication, copyToClipboard, sanitizeInput, scrollToBottom, scrollToBottomManual, handleScroll, ensureCursorVisible } from './utils.js';
 
@@ -111,52 +107,6 @@ export function initializeEventHandlers() {
         });
     }
 
-    // Character Gallery button in welcome screen
-    if (welcomeCharacterGalleryBtn) {
-        // Function to open character gallery
-        const openCharacterGallery = () => {
-            debugLog('Character Gallery button clicked, opening character gallery');
-            // Ensure the welcome message is hidden when character gallery is shown
-            if (welcomeMessage && welcomeMessage.style.display !== 'none') {
-                welcomeMessage.style.opacity = '0';
-                welcomeMessage.style.visibility = 'hidden';
-            }
-            // Show the character gallery
-            try {
-                showCharacterGallery();
-            } catch (error) {
-                debugError('Error showing character gallery:', error);
-            }
-        };
-
-        // Remove any existing event listeners to prevent duplicates
-        const newWelcomeCharacterGalleryBtn = welcomeCharacterGalleryBtn.cloneNode(true);
-        welcomeCharacterGalleryBtn.parentNode.replaceChild(newWelcomeCharacterGalleryBtn, welcomeCharacterGalleryBtn);
-
-        // Update the reference
-        const updatedWelcomeCharacterGalleryBtn = document.getElementById('welcome-character-gallery-btn');
-
-        // Add click event listener
-        updatedWelcomeCharacterGalleryBtn.addEventListener('click', openCharacterGallery);
-
-        // Add touch event listener for better mobile experience
-        updatedWelcomeCharacterGalleryBtn.addEventListener('touchend', (e) => {
-            e.preventDefault(); // Prevent default to avoid any conflicts
-            e.stopPropagation(); // Prevent event bubbling
-            updatedWelcomeCharacterGalleryBtn.classList.remove('active');
-            openCharacterGallery();
-        }, { passive: false });
-
-        // Add visual feedback for touch devices
-        updatedWelcomeCharacterGalleryBtn.addEventListener('touchstart', () => {
-            updatedWelcomeCharacterGalleryBtn.classList.add('active');
-        });
-
-        // Add touchcancel handler
-        updatedWelcomeCharacterGalleryBtn.addEventListener('touchcancel', () => {
-            updatedWelcomeCharacterGalleryBtn.classList.remove('active');
-        });
-    }
 
     // Models button in welcome screen
     if (welcomeModelsBtn) {
@@ -395,8 +345,12 @@ export function initializeEventHandlers() {
         });
     }
 
-    // New chat button event is now handled in character-continuation-modal.js
-    // We don't add an event listener here anymore
+    // New chat button
+    if (newChatButton) {
+        newChatButton.addEventListener('click', () => {
+            createNewChat();
+        });
+    }
 
     // Settings button
     if (settingsButton) {
@@ -885,54 +839,6 @@ export function initializeEventHandlers() {
         debugLog('Model button event handler attached during initialization');
     }
 
-    // Characters button in sidebar
-    if (charactersButton) {
-        // Remove any existing event listeners to prevent duplicates
-        const newCharactersButton = charactersButton.cloneNode(true);
-        charactersButton.parentNode.replaceChild(newCharactersButton, charactersButton);
-
-        // Add the event listener to the new button
-        newCharactersButton.addEventListener('click', () => {
-            debugLog('Characters button clicked');
-            console.log('Characters button clicked, showing character gallery');
-
-            // Close the sidebar first
-            closeSidebar();
-            
-            // Also close the options container
-            const optionsContainer = document.getElementById('options-container');
-            if (optionsContainer) {
-                optionsContainer.classList.add('hidden');
-                optionsContainer.classList.remove('animate-fade-in');
-            }
-            
-            // Collapse all sections when sidebar is closed
-            const sectionHeaders = sidebar.querySelectorAll('.section-header');
-            const chatHistorySection = sidebar.querySelector('.sidebar-section:last-child');
-            sectionHeaders.forEach(header => {
-                header.classList.remove('active');
-                const content = header.nextElementSibling;
-                if (content && content.classList.contains('collapsible-content')) {
-                    content.classList.remove('show');
-                }
-            });
-
-            // Ensure chat history is visible when sidebar is closed
-            if (chatHistorySection) {
-                chatHistorySection.classList.remove('chat-history-hidden');
-            }
-            
-            // Get the latest character data
-            import('./character-manager.js').then(module => {
-                const charactersData = module.getCharactersData();
-                console.log('Characters data from character-manager:', Object.keys(charactersData));
-
-                // Show the character gallery with the latest data
-                showCharacterGallery(charactersData);
-            });
-        });
-        debugLog('Characters button event handler attached during initialization');
-    }
 
     // Settings icon button in header
     if (settingsIconButton) {
@@ -2599,34 +2505,26 @@ function toggleImportExportContainer() {
 }
 
 /**
- * Handles the "Continue with Character" button click
- * Creates a new chat while keeping the current character active
+ * Handles new chat button click
  */
-export function handleContinueWithCharacter() {
-    console.log('Continue with character button clicked');
-
-    // Get the active character before creating a new chat
-    const activeCharacter = getActiveCharacter();
-
-    if (!activeCharacter) {
-        console.error('No active character found');
-        appendMessage('system', 'Error: No active character found.');
-        return;
+function handleNewChatButtonClick() {
+    debugLog('New chat button clicked');
+    
+    // Close the sidebar first
+    closeSidebar();
+    
+    // Also close the options container
+    const optionsContainer = document.getElementById('options-container');
+    if (optionsContainer) {
+        optionsContainer.classList.add('hidden');
+        optionsContainer.classList.remove('animate-fade-in');
     }
-
-    // Create a new chat but keep the current character
-    createNewChat(true);
-
-    // Force update the active character display to ensure it's visible
-    setTimeout(() => {
-        updateActiveCharacterDisplay();
-
-        // Make sure the active character display is not hidden
-        if (activeCharacterDisplay) {
-            activeCharacterDisplay.classList.remove('hidden');
-        }
-
-        // Show a confirmation message
-        appendMessage('system', `Started a new chat with ${activeCharacter.name}.`);
-    }, 100);
+    
+    // Create a new chat
+    createNewChat();
+    
+    // Remove focus to prevent the button from staying highlighted
+    if (newChatHeaderButton) {
+        newChatHeaderButton.blur();
+    }
 }

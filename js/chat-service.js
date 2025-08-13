@@ -5,7 +5,6 @@ import { getApiUrl, getAvailableModels, isServerRunning, fetchAvailableModels } 
 import { getSystemPrompt, getTemperature, isSystemPromptSet, getAutoGenerateTitles, isUserCreatedPrompt, getHideThinking, getReasoningTimeout } from './settings-manager.js';
 import { sanitizeInput, basicSanitizeInput, initializeCodeMirror, scrollToBottom, handleScroll, debugLog, debugError, filterToEnglishCharacters, processCodeBlocks, decodeHtmlEntities, refreshAllCodeBlocks, containsCodeBlocks, containsCodeBlocksOutsideThinkTags, saveCurrentChatBeforeRefresh, removeThinkTags } from './utils.js';
 import { setActionToPerform } from './shared-state.js';
-import { clearActiveCharacter } from './character-manager.js';
 
 let currentChatId = Date.now();
 let chatHistoryData = {};
@@ -61,29 +60,6 @@ function getMaxTokens() {
     return savedMaxTokens ? parseInt(savedMaxTokens, 10) || 0 : 0;
 }
 
-/**
- * Gets the active character ID if any
- * @returns {string|null} - The active character ID or null if none
- */
-function getCurrentCharacterId() {
-    return localStorage.getItem('activeCharacterId') || null;
-}
-
-/**
- * Gets character data by ID
- * @param {string} id - The character ID
- * @returns {Object|null} - The character data or null if not found
- */
-function getCharacter(id) {
-    try {
-        // Try to get characters data from localStorage
-        const charactersData = JSON.parse(localStorage.getItem('charactersData')) || {};
-        return charactersData[id] || null;
-    } catch (e) {
-        debugError('Error getting character data:', e);
-        return null;
-    }
-}
 
 /**
  * Checks if the server supports file uploads
@@ -201,15 +177,6 @@ async function generateAIResponseInternal(userMessage, fileContents = []) {
         }
         // Note: No default system prompt is added to allow reasoning models to behave naturally
 
-        // Add character prompt if a character is selected
-        const characterId = getCurrentCharacterId();
-        if (characterId) {
-            const character = getCharacter(characterId);
-            if (character && character.system_prompt) {
-                // If this is a character with a system prompt, replace the default one
-                messages[0] = { role: 'system', content: character.system_prompt };
-            }
-        }
 
         // Add chat history from previous messages
         if (chatHistoryData[currentChatId]) {
@@ -938,7 +905,6 @@ export async function updateChatHistory(userMessage, aiMessage, fileContents = [
         chatHistoryData[currentChatId] = {
             messages: [],
             title: null, // Initialize with no title
-            characterId: null // Initialize with no character
         };
     }
 
@@ -952,7 +918,6 @@ export async function updateChatHistory(userMessage, aiMessage, fileContents = [
         chatHistoryData[currentChatId] = {
             messages: oldMessages,
             title: oldTitle,
-            characterId: null // Initialize with no character for old format chats
         };
     }
 
@@ -1045,7 +1010,6 @@ export function addTopicBoundary() {
         chatHistoryData[currentChatId] = {
             messages: [],
             title: null,
-            characterId: null // Initialize with no character
         };
     }
 
@@ -1059,7 +1023,6 @@ export function addTopicBoundary() {
         chatHistoryData[currentChatId] = {
             messages: oldMessages,
             title: oldTitle,
-            characterId: null // Initialize with no character for old format chats
         };
     }
 
@@ -1349,13 +1312,11 @@ export function deleteChatHistory(id) {
         const isUserCreated = isUserCreatedPrompt();
         const savedPrompt = localStorage.getItem('systemPrompt');
 
-        // Clear the active character
-        clearActiveCharacter();
 
         // If the system prompt was user-created, restore it
         if (isUserCreated && savedPrompt) {
             console.log('System prompt was user-created, restoring it after deleting chat');
-            // Set the system prompt but mark it as not from a character
+            // Set the system prompt
             import('./settings-manager.js').then(module => {
                 module.setSystemPrompt(savedPrompt, false);
             });
@@ -1414,7 +1375,6 @@ export function loadChat(id, isFirstMessageReload = false) {
         chatHistoryData[id] = {
             messages: oldMessages,
             title: oldTitle,
-            characterId: null // Initialize with no character for old format chats
         };
     }
 
@@ -1434,61 +1394,35 @@ export function loadChat(id, isFirstMessageReload = false) {
     const isUserCreated = isUserCreatedPrompt();
     const savedPrompt = localStorage.getItem('systemPrompt');
 
-    // Check if this chat has an associated character
-    const chatCharacterId = chatHistoryData[id].characterId;
-
-    if (chatCharacterId) {
-        // This chat has an associated character, set it as active
-        console.log('Chat has associated character ID:', chatCharacterId);
-        import('./character-manager.js').then(module => {
-            // Set the active character
-            module.setActiveCharacter(chatCharacterId);
-            console.log('Re-enabled character for chat');
-
-            // Ensure character information is properly set in the system prompt
-            // This will help prevent the character information from getting lost
-            // Skip for first message reloads
-            if (!isFirstMessageReload) {
-                setTimeout(() => {
-                    module.ensureCharacterInSystemPrompt();
-                }, 100); // Small delay to ensure setActiveCharacter has completed
-            }
+    // If the system prompt was user-created, restore it
+    if (isUserCreated && savedPrompt) {
+        console.log('System prompt was user-created, restoring it after loading chat');
+        // Set the system prompt
+        import('./settings-manager.js').then(module => {
+            module.setSystemPrompt(savedPrompt, false);
         });
-    } else {
-        // No character associated with this chat, clear the active character
-        console.log('No character associated with this chat, clearing active character');
-        clearActiveCharacter();
 
-        // If the system prompt was user-created, restore it
-        if (isUserCreated && savedPrompt) {
-            console.log('System prompt was user-created, restoring it after loading chat');
-            // Set the system prompt but mark it as not from a character
-            import('./settings-manager.js').then(module => {
-                module.setSystemPrompt(savedPrompt, false);
-            });
+        // Update the UI to show the system prompt
+        const systemPromptInput = document.getElementById('system-prompt');
+        if (systemPromptInput) {
+            systemPromptInput.value = savedPrompt;
+        }
 
-            // Update the UI to show the system prompt
-            const systemPromptInput = document.getElementById('system-prompt');
-            if (systemPromptInput) {
-                systemPromptInput.value = savedPrompt;
-            }
+        // Update the system prompt display
+        const systemPromptDisplay = document.getElementById('system-prompt-display');
+        if (systemPromptDisplay) {
+            systemPromptDisplay.textContent = savedPrompt;
+        }
 
-            // Update the system prompt display
-            const systemPromptDisplay = document.getElementById('system-prompt-display');
-            if (systemPromptDisplay) {
-                systemPromptDisplay.textContent = savedPrompt;
-            }
+        // Update the system prompt preview
+        const systemPromptPreview = document.getElementById('system-prompt-preview');
+        if (systemPromptPreview) {
+            systemPromptPreview.textContent = savedPrompt;
+        }
 
-            // Update the system prompt preview
-            const systemPromptPreview = document.getElementById('system-prompt-preview');
-            if (systemPromptPreview) {
-                systemPromptPreview.textContent = savedPrompt;
-            }
-
-            // Force update any CodeMirror editor that might be showing the system prompt
-            if (window.systemPromptEditor && typeof window.systemPromptEditor.setValue === 'function') {
-                window.systemPromptEditor.setValue(savedPrompt);
-            }
+        // Force update any CodeMirror editor that might be showing the system prompt
+        if (window.systemPromptEditor && typeof window.systemPromptEditor.setValue === 'function') {
+            window.systemPromptEditor.setValue(savedPrompt);
         }
     }
 
@@ -1729,11 +1663,10 @@ export function clearAllChats() {
 
 /**
  * Creates a new chat
- * @param {boolean} keepCharacter - Whether to keep the current character in the new chat
  * @returns {string} - The ID of the new chat
  */
-export function createNewChat(keepCharacter = false) {
-    console.log(`Creating new chat with keepCharacter=${keepCharacter}`);
+export function createNewChat() {
+    console.log('Creating new chat');
 
     // Generate a new chat ID
     const newChatId = Date.now().toString();
@@ -1743,7 +1676,6 @@ export function createNewChat(keepCharacter = false) {
     chatHistoryData[newChatId] = {
         messages: [],
         title: null, // Explicitly set to null to avoid any issues with <think> tags
-        characterId: null // Initialize with no character
     };
 
     // Update the current chat ID
@@ -1765,35 +1697,18 @@ export function createNewChat(keepCharacter = false) {
     // Reset the first message flag
     setIsFirstMessage(true);
 
-    if (keepCharacter) {
-        console.log('Keeping character for new chat');
-        // Get the active character to verify it's still set
-        import('./character-manager.js').then(module => {
-            const activeCharacter = module.getActiveCharacter();
-            console.log('Active character in createNewChat:', activeCharacter ? activeCharacter.name : 'None');
+    // Check if there's a user-created system prompt that should be preserved
+    const savedPrompt = localStorage.getItem('systemPrompt');
+    const isUserCreated = localStorage.getItem('isUserCreatedSystemPrompt') === 'true';
 
-            // Store the active character ID in the chat data
-            if (activeCharacter) {
-                chatHistoryData[newChatId].characterId = activeCharacter.id;
-                console.log('Stored character ID in chat data:', activeCharacter.id);
+    if (isUserCreated && savedPrompt) {
+        console.log('Preserving user-created system prompt for new chat:', savedPrompt);
 
-                // First message feature has been removed
-                console.log('First message feature has been removed');
-            }
+        // Set the system prompt
+        getSystemPrompt(); // This is just to ensure the function is properly imported
+        import('./settings-manager.js').then(module => {
+            module.setSystemPrompt(savedPrompt, false);
         });
-    } else {
-        // Check if there's a user-created system prompt that should be preserved
-        const savedPrompt = localStorage.getItem('systemPrompt');
-        const isUserCreated = localStorage.getItem('isUserCreatedSystemPrompt') === 'true';
-
-        if (isUserCreated && savedPrompt) {
-            console.log('Preserving user-created system prompt for new chat:', savedPrompt);
-
-            // Set the system prompt but mark it as not from a character
-            getSystemPrompt(); // This is just to ensure the function is properly imported
-            import('./settings-manager.js').then(module => {
-                module.setSystemPrompt(savedPrompt, false);
-            });
 
             // Update the UI to show the system prompt
             const systemPromptInput = document.getElementById('system-prompt');
@@ -1806,7 +1721,6 @@ export function createNewChat(keepCharacter = false) {
             if (systemPromptDisplay) {
                 systemPromptDisplay.textContent = savedPrompt;
             }
-
             // Update the system prompt preview
             const systemPromptPreview = document.getElementById('system-prompt-preview');
             if (systemPromptPreview) {
@@ -1817,62 +1731,28 @@ export function createNewChat(keepCharacter = false) {
             if (window.systemPromptEditor && typeof window.systemPromptEditor.setValue === 'function') {
                 window.systemPromptEditor.setValue(savedPrompt);
             }
-        } else {
-            console.log('System prompt was not user-created, clearing it for the new chat');
-            // Force the system prompt to be empty
-            // Use false to indicate this is NOT from a character action
-            import('./settings-manager.js').then(module => {
-                module.setSystemPrompt('', false);
-            });
-
-            // Update the system prompt in the UI
-            const systemPromptInput = document.getElementById('system-prompt');
-            if (systemPromptInput) {
-                systemPromptInput.value = '';
-                // Trigger change event to update UI
-                const event = new Event('change');
-                systemPromptInput.dispatchEvent(event);
-            }
-
-            // Update the system prompt display
-            const systemPromptDisplay = document.getElementById('system-prompt-display');
-            if (systemPromptDisplay) {
-                systemPromptDisplay.textContent = '';
-            }
-
-            // Update the system prompt preview
-            const systemPromptPreview = document.getElementById('system-prompt-preview');
-            if (systemPromptPreview) {
-                systemPromptPreview.textContent = '';
-            }
-
-            // Force update any CodeMirror editor that might be showing the system prompt
-            if (window.systemPromptEditor && typeof window.systemPromptEditor.setValue === 'function') {
-                window.systemPromptEditor.setValue('');
-            }
         }
+
+        // Save the empty chat to localStorage first to ensure it's saved
+        // even if there's an issue with subsequent operations
+        debugLog(`Saving new empty chat with ID ${newChatId} to localStorage`);
+        saveChatHistory();
+
+        // Hide the scroll-to-bottom button if it's visible
+        const scrollButton = document.getElementById('scroll-to-bottom');
+        if (scrollButton) {
+            scrollButton.classList.remove('visible');
+            scrollButton.classList.add('hidden');
+        }
+
+        // Close the sidebar if it's open (especially important on mobile)
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar && sidebar.classList.contains('active')) {
+            toggleSidebar();
+        }
+
+        return newChatId;
     }
-
-    // Save the empty chat to localStorage first to ensure it's saved
-    // even if there's an issue with subsequent operations
-    debugLog(`Saving new empty chat with ID ${newChatId} to localStorage`);
-    saveChatHistory();
-
-    // Hide the scroll-to-bottom button if it's visible
-    const scrollButton = document.getElementById('scroll-to-bottom');
-    if (scrollButton) {
-        scrollButton.classList.remove('visible');
-        scrollButton.classList.add('hidden');
-    }
-
-    // Close the sidebar if it's open (especially important on mobile)
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar && sidebar.classList.contains('active')) {
-        toggleSidebar();
-    }
-
-    return newChatId;
-}
 
 /**
  * Saves the chat history to localStorage
@@ -1902,8 +1782,7 @@ export function saveChatHistory() {
                 chatHistoryToSave[chatId] = {
                     messages: oldMessages,
                     title: oldTitle,
-                    characterId: null // Initialize with no character for old format chats
-                };
+                        };
             }
 
             // Ensure messages property exists and is an array
@@ -2061,8 +1940,7 @@ export function loadChatHistory() {
                     chatHistoryData[chatId] = {
                         messages: oldMessages,
                         title: oldTitle,
-                        characterId: null // Initialize with no character for old format chats
-                    };
+                                };
                     debugLog(`Converted chat ${chatId} to new format`);
                 } else {
                     // For already converted chats, ensure proper structure
@@ -2083,8 +1961,7 @@ export function loadChatHistory() {
                     chatHistoryData[chatId] = {
                         messages: Array.isArray(chatData.messages) ? [...chatData.messages] : [],
                         title: cleanTitle,
-                        characterId: chatData.characterId || null // Preserve character ID if it exists
-                    };
+                            };
                 }
 
                 // Get the messages array (now guaranteed to be in the new format)
@@ -2613,15 +2490,6 @@ export async function regenerateLastResponse(isRetry = false) {
             }
             // Note: No default system prompt is added to allow reasoning models to behave naturally
 
-            // Add character prompt if a character is selected
-            const characterId = getCurrentCharacterId();
-            if (characterId) {
-                const character = getCharacter(characterId);
-                if (character && character.system_prompt) {
-                    // Replace the default system prompt with character prompt
-                    apiMessages[0] = { role: 'system', content: character.system_prompt };
-                }
-            }
 
             // Add all messages up to and including the last user message
             for (const msg of filteredMessages) {
@@ -2985,8 +2853,7 @@ export async function regenerateLastResponse(isRetry = false) {
             chatHistoryData[currentChatId] = {
                 messages: chatHistoryData[currentChatId].slice(0, lastUserMessageIndex + 1),
                 title: chatHistoryData[currentChatId].title || null,
-                characterId: null // Initialize with no character for old format chats
-            };
+                };
         } else {
             chatHistoryData[currentChatId].messages = chatHistoryData[currentChatId].messages.slice(0, lastUserMessageIndex + 1);
         }
@@ -3226,7 +3093,6 @@ export async function addUserMessageToHistory(userMessage, fileContents = []) {
         chatHistoryData[currentChatId] = {
             messages: [],
             title: null, // Initialize with no title
-            characterId: null // Initialize with no character
         };
     }
 
@@ -3240,7 +3106,6 @@ export async function addUserMessageToHistory(userMessage, fileContents = []) {
         chatHistoryData[currentChatId] = {
             messages: oldMessages,
             title: oldTitle,
-            characterId: null // Initialize with no character for old format chats
         };
     }
 

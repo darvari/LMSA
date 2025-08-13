@@ -1019,12 +1019,8 @@ function initializeSystemPromptOverlay() {
         // Save to hidden textarea
         hiddenTextarea.value = editor.value;
 
-        // Check if we need to update the isUserCreatedSystemPrompt flag
-        const activeCharacterId = localStorage.getItem('activeCharacterId');
-        if (!activeCharacterId || activeCharacterId === '') {
-            // No active character, mark this as a user-created prompt
-            localStorage.setItem('isUserCreatedSystemPrompt', 'true');
-        }
+        // Mark this as a user-created prompt
+        localStorage.setItem('isUserCreatedSystemPrompt', 'true');
 
         // Update the preview
         updatePreview();

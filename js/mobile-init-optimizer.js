@@ -154,8 +154,6 @@ class MobileInitOptimizer {
         try {
             // Load remaining modules
             const completeModules = [
-                './character-manager.js',
-                './character-gallery.js',
                 './settings-manager.js',
                 './file-upload.js',
                 './export-import.js',

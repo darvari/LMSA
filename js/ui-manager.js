@@ -1,12 +1,10 @@
 // UI Manager for handling UI-related functionality
 import {
     messagesContainer, welcomeMessage, sidebar, settingsModal,
-    loadingIndicator, sendButton, stopButton, loadedModelDisplay,
-    activeCharacterDisplay
+    loadingIndicator, sendButton, stopButton, loadedModelDisplay
 } from './dom-elements.js';
 import { basicSanitizeInput, sanitizeInput, initializeCodeMirror, scrollToBottom, copyToClipboard, debugLog, debugError, processCodeBlocks, decodeHtmlEntities, htmlToFormattedText } from './utils.js';
 import { getHideThinking } from './settings-manager.js';
-import { getActiveCharacter } from './character-manager.js';
 import { domBatcher, performanceMonitor, rafThrottle } from './performance-optimizer.js';
 
 
@@ -1761,94 +1759,14 @@ export function adjustScrollToBottomButtonPosition() {
 
 /**
  * Updates the active character display in the chat interface
+ * Character functionality has been removed
  */
 export function updateActiveCharacterDisplay() {
-    if (!activeCharacterDisplay) {
-        debugError('Active character display element not found');
-        return;
-    }
-
-    const activeCharacter = getActiveCharacter();
-    debugLog('Updating active character display:', activeCharacter);
-
-    if (activeCharacter) {
-        // Create character badge
-        activeCharacterDisplay.innerHTML = '';
-
-        // Create a flex container for the character badge
-        const container = document.createElement('div');
-        container.className = 'flex items-center w-full';
-        container.style.maxWidth = '100%';
-        container.style.boxSizing = 'border-box';
-        container.style.justifyContent = 'flex-start'; // Align to the left
-
-        const characterBadge = document.createElement('div');
-        characterBadge.className = 'character-badge';
-        characterBadge.style.width = 'auto'; // Set width to auto
-        characterBadge.style.maxWidth = 'fit-content'; // Only as wide as content needs
-
-        const characterAvatar = document.createElement('div');
-        characterAvatar.className = 'character-badge-avatar';
-
-        if (activeCharacter.image) {
-            const img = document.createElement('img');
-            img.src = activeCharacter.image;
-            img.alt = activeCharacter.name;
-            characterAvatar.appendChild(img);
-        } else {
-            const icon = document.createElement('i');
-            icon.className = 'fas fa-user text-white text-xs';
-            characterAvatar.appendChild(icon);
-        }
-
-        const characterName = document.createElement('span');
-        characterName.className = 'character-badge-name';
-        characterName.textContent = activeCharacter.name;
-        characterName.style.maxWidth = 'max-content'; // Only as wide as text needs
-        characterName.style.display = 'inline-block'; // Ensure proper text handling
-
-        characterBadge.appendChild(characterAvatar);
-        characterBadge.appendChild(characterName);
-
-        // No "Continue with Character" button anymore
-
-        container.appendChild(characterBadge);
-
-        activeCharacterDisplay.appendChild(container);
-
-        // First remove the hidden class
-        activeCharacterDisplay.classList.remove('hidden');
-
-        // Then set display style - use flex to match CSS
-        activeCharacterDisplay.style.display = 'flex';
-
-        // Make sure the character badge is visible
-        debugLog('Character badge created and added to display');
-    } else {
-        // Hide the character display if no active character
-        activeCharacterDisplay.innerHTML = '';
-
-        // First add the hidden class
-        activeCharacterDisplay.classList.add('hidden');
-
-        // Then set display style to none
-        activeCharacterDisplay.style.display = 'none';
-
-        debugLog('No active character, hiding character display');
-    }
-
-    // Adjust the scroll-to-bottom button position
-    adjustScrollToBottomButtonPosition();
-
-    // Ensure welcome message position is updated when character display changes
-    // This ensures proper spacing between welcome container and character icon
-    if (welcomeMessage && welcomeMessage.style.display !== 'none') {
-        ensureWelcomeMessagePosition();
-    }
+    // Character functionality removed - this function is now a no-op
+    return;
 }
 
 // Listen for character changes
-document.addEventListener('character-changed', updateActiveCharacterDisplay);
 
 // Dynamic header management for optimal space usage
 class HeaderManager {
@@ -1983,6 +1901,5 @@ function initializeHeaderManager() {
 initializeHeaderManager();
 
 // Make functions available globally
-window.updateActiveCharacterDisplay = updateActiveCharacterDisplay;
 window.adjustScrollToBottomButtonPosition = adjustScrollToBottomButtonPosition;
 window.HeaderManager = HeaderManager;

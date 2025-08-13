@@ -238,7 +238,6 @@ class MobilePerformanceOptimizer {
 
         // Defer non-critical JavaScript execution
         const deferredModules = [
-            './character-gallery.js',
             './export-import.js',
             './whats-new.js',
             './about.js'

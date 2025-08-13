@@ -90,23 +90,12 @@ export function initializeSystemPrompt() {
         systemPromptInput.addEventListener('change', () => {
             systemPrompt = systemPromptInput.value;
 
-            // Check if a character is active before saving the system prompt
-            const activeCharacterId = localStorage.getItem('activeCharacterId');
-            if (!activeCharacterId || activeCharacterId === '') {
-                // Only mark as user-created if there's no active character
-                isUserCreatedSystemPrompt = true;
-                // Save both the prompt and the flag
-                localStorage.setItem('systemPrompt', systemPrompt);
-                localStorage.setItem('isUserCreatedSystemPrompt', 'true');
-                debugLog('Saved user-created system prompt:', systemPrompt);
-            } else {
-                // If a character is active, don't mark as user-created
-                isUserCreatedSystemPrompt = false;
-                // Still save the prompt but not the flag
-                localStorage.setItem('systemPrompt', systemPrompt);
-                localStorage.removeItem('isUserCreatedSystemPrompt');
-                debugLog('Character is active, not marking system prompt as user-created');
-            }
+            // Mark the system prompt as user-created when explicitly set
+            isUserCreatedSystemPrompt = true;
+            // Save both the prompt and the flag
+            localStorage.setItem('systemPrompt', systemPrompt);
+            localStorage.setItem('isUserCreatedSystemPrompt', 'true');
+            debugLog('Saved user-created system prompt:', systemPrompt);
 
             // Sync the display element if it exists
             if (systemPromptDisplay) {
@@ -114,8 +103,6 @@ export function initializeSystemPrompt() {
             }
         });
 
-        // Check if there's an active character
-        const activeCharacterId = localStorage.getItem('activeCharacterId');
 
         // Load saved system prompt
         const savedPrompt = localStorage.getItem('systemPrompt');
@@ -123,7 +110,6 @@ export function initializeSystemPrompt() {
 
         debugLog('Loading system prompt - Saved prompt:', savedPrompt);
         debugLog('Is user-created:', savedIsUserCreated);
-        debugLog('Active character ID:', activeCharacterId);
 
         if (savedPrompt && savedPrompt.trim() !== '') {
             // If we have a saved prompt, always load it
@@ -545,58 +531,21 @@ export function getSystemPrompt() {
 /**
  * Sets the system prompt
  * @param {string} prompt - The new system prompt
- * @param {boolean} isFromCharacter - Whether the prompt is being set from a character (default: false)
  */
-export function setSystemPrompt(prompt, isFromCharacter = false) {
-    debugLog('Setting system prompt to:', prompt, 'From character:', isFromCharacter);
-
-    // Check if this is a character prompt
-    const isCharacterPrompt = prompt && prompt.includes('[Character:');
-
-    // Check if a character is active
-    const activeCharacterId = localStorage.getItem('activeCharacterId');
-    const hasActiveCharacter = activeCharacterId && activeCharacterId !== '';
-
-    // If this is a character prompt or from a character, ensure we have the active character ID set
-    if ((isCharacterPrompt || isFromCharacter) && !hasActiveCharacter) {
-        // Instead of just warning, check if we're in the initialization phase
-        // If we are, set the active character ID to a temporary value to avoid the warning
-        if (document.readyState !== 'complete') {
-            debugLog('Setting character prompt during initialization, but no active character ID is set.');
-            debugLog('This is likely happening during the loadCharacters phase.');
-            // Don't show the warning during initialization
-        } else {
-            debugLog('Setting character prompt but no active character ID is set. This may cause issues.');
-        }
-    }
-
-    // If we're setting a non-character prompt but a character is active,
-    // and we're not explicitly saying this is from a character,
-    // we should warn about this potential issue
-    if (!isCharacterPrompt && hasActiveCharacter && !isFromCharacter) {
-        debugLog('Setting non-character prompt while a character is active. This may override character information.');
-    }
+export function setSystemPrompt(prompt) {
+    debugLog('Setting system prompt to:', prompt);
 
     // Set the system prompt
     systemPrompt = prompt;
 
-    // Update the user-created flag
-    if (isFromCharacter || hasActiveCharacter) {
-        // If set from a character or a character is active, it's not user-created
-        isUserCreatedSystemPrompt = false;
-        localStorage.removeItem('isUserCreatedSystemPrompt');
-    } else {
-        // Otherwise, it's user-created
-        isUserCreatedSystemPrompt = true;
-        localStorage.setItem('isUserCreatedSystemPrompt', 'true');
-    }
+    // Mark as user-created when explicitly set
+    isUserCreatedSystemPrompt = true;
+    localStorage.setItem('isUserCreatedSystemPrompt', 'true');
 
     // Always save the current system prompt
     localStorage.setItem('systemPrompt', systemPrompt);
 
     debugLog('System prompt saved. User-created:', isUserCreatedSystemPrompt);
-    debugLog('Current active character ID:', activeCharacterId);
-    debugLog('Is character prompt:', isCharacterPrompt);
 
     // Update the system prompt input if it exists
     if (systemPromptInput) {
@@ -649,7 +598,6 @@ export function setSystemPrompt(prompt, isFromCharacter = false) {
  */
 export function isSystemPromptSet() {
     // Check if there's an active character
-    const activeCharacterId = localStorage.getItem('activeCharacterId');
     const hasActiveCharacter = activeCharacterId && activeCharacterId !== '';
 
     // Check if the system prompt contains character information

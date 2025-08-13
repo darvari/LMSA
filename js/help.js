@@ -2,7 +2,6 @@
 import { checkAndShowWelcomeMessage } from './ui-manager.js';
 import { hideSettingsModal } from './settings-modal-manager.js';
 import { showExternalSiteModal } from './external-site-confirmation-modal.js';
-import { handleNewChatButtonClick } from './character-continuation-modal.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const helpBtn = document.getElementById('help-btn');
@@ -178,7 +177,11 @@ Thank you for your help!
 
     // New chat header button - triggers new chat functionality
     if (newChatHeaderBtn) {
-        newChatHeaderBtn.addEventListener('click', handleNewChatButtonClick);
+        newChatHeaderBtn.addEventListener('click', () => {
+            import('./chat-service.js').then(module => {
+                module.createNewChat();
+            });
+        });
     }
 
     // Settings help button - closes Settings modal and opens Help modal

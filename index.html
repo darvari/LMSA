@@ -15,7 +15,7 @@
     <meta name="renderer" content="webkit">
     <meta name="color-scheme" content="dark light">
     <title>LMSA • AI Assistant</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" href="icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts with optimized loading and memory management -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,12 +24,9 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/theme-variables.css">
     <link rel="stylesheet" href="css/modern-ui.css">
-    <link rel="stylesheet" href="css/character-gallery.css">
-    <link rel="stylesheet" href="css/character-modal.css">
     <link rel="stylesheet" href="css/settings-modal.css">
     <link rel="stylesheet" href="css/system-prompt-overlay.css">
     <link rel="stylesheet" href="css/code-blocks.css">
-    <link rel="stylesheet" href="css/continue-with-character.css">
     <link rel="stylesheet" href="css/performance-optimizations.css">
     <link rel="stylesheet" href="css/mobile-optimizations.css">
     <link rel="stylesheet" href="css/loading-spinner.css">
@@ -946,11 +943,6 @@
                                     <span>Settings</span>
                                 </button>
 
-                                <!-- Character Gallery Button - Professional styling -->
-                                <button id="welcome-character-gallery-btn" class="professional-button flex items-center justify-center gap-3 w-full h-[48px]">
-                                    <i class="fas fa-users text-sm"></i>
-                                    <span>Characters</span>
-                                </button>
 
                                 <!-- Models Button - Professional styling -->
                                 <button id="welcome-models-btn" class="professional-button flex items-center justify-center gap-3 w-full h-[48px]">
@@ -1000,10 +992,6 @@
 
                 <!-- Input area -->
                 <div class="border-t animate-fade-in" style="position: relative; z-index: 10; border-color: var(--border-color); width: 100%; box-sizing: border-box; margin-top: auto;">
-                    <!-- Active Character Display -->
-                    <div id="active-character-display" class="hidden">
-                        <!-- Character badge will be dynamically added here -->
-                    </div>
 
                     <form id="chat-form" class="flex" style="position: relative; background-color: var(--bg-secondary);">
                         <div class="flex-grow relative">
@@ -1408,45 +1396,6 @@
         </div>
     </div>
 
-    <!-- Character Continuation Modal -->
-    <div id="character-continuation-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center hidden modal-container z-50" aria-labelledby="character-continuation-title" role="dialog" aria-modal="true">
-        <div class="bg-gradient-to-b from-[#0a192f] to-[#0d1f3d] p-6 rounded-xl w-[420px] max-w-[90%] shadow-2xl modal-content border border-blue-900/30 overflow-hidden animate-modal-in">
-            <div class="flex justify-between items-center mb-4">
-                <h2 id="character-continuation-title" class="text-xl font-bold flex items-center modal-title">
-                    <div class="icon-wrapper mr-3 flex items-center justify-center rounded-full bg-blue-500/20 w-10 h-10 text-blue-400">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <span>Continue with Character?</span>
-                </h2>
-                <button id="close-character-continuation-modal" class="text-gray-400 hover:text-white focus:outline-none transition-colors duration-300 hover:bg-gray-700/50 rounded-full w-8 h-8 flex items-center justify-center">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <div class="mb-6">
-                <div id="character-continuation-info" class="flex items-center mb-4 bg-blue-900/20 p-3 rounded-lg border border-blue-800/30">
-                    <div id="character-continuation-avatar" class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center mr-3 overflow-hidden">
-                        <!-- Character image will be inserted here dynamically -->
-                        <i class="fas fa-user text-white"></i>
-                    </div>
-                    <div class="flex-1">
-                        <div id="character-continuation-name" class="font-semibold text-lg"></div>
-                        <div id="character-continuation-description" class="text-sm text-gray-300 line-clamp-2"></div>
-                    </div>
-                </div>
-                <p class="text-gray-300">Would you like to continue using this character in your new chat?</p>
-            </div>
-
-            <div class="flex justify-between space-x-4">
-                <button id="new-chat-without-character" class="flex-1 rounded-lg px-4 py-3 focus:outline-none transition-all duration-300 ease-in-out text-center" style="background-color: var(--bg-tertiary); color: var(--text-primary);">
-                    <i class="fas fa-times-circle mr-2"></i>New Chat
-                </button>
-                <button id="continue-with-character-btn" class="flex-1 bg-blue-600 text-white rounded-lg px-4 py-3 hover:bg-blue-700 focus:outline-none transition-all duration-300 ease-in-out text-center">
-                    <i class="fas fa-check-circle mr-2"></i>Continue with Character
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- Help modal -->
     <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden modal-container" aria-labelledby="help-title" role="dialog" aria-modal="true">
@@ -1959,182 +1908,7 @@
         </div>
     </div>
 
-    <!-- Character Modal -->
-    <div id="character-modal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center hidden modal-container" aria-labelledby="character-title" role="dialog" aria-modal="true">
-        <div class="character-modal">
-            <div class="character-modal-header">
-                <h2 id="character-title" class="character-modal-title">Create Character</h2>
-                <button id="close-character" class="character-modal-close" aria-label="Close character modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="character-modal-body">
-                <form id="character-form">
-                    <div class="flex flex-col lg:flex-row gap-5">
-                        <!-- Left column - Basic info -->
-                        <div class="flex-1">
-                            <div class="character-form-group">
-                                <label for="character-name" class="character-form-label">Character Name <span class="text-red-500">*</span></label>
-                                <input type="text" id="character-name" class="character-form-input" placeholder="Enter character name" required>
-                            </div>
 
-                            <div class="character-form-group">
-                                <label for="character-description" class="character-form-label">Character Description</label>
-                                <textarea id="character-description" class="character-form-input character-form-textarea" placeholder="Brief description of your character"></textarea>
-                                <div class="text-xs text-gray-400 mt-1">Describe what makes this character unique</div>
-                            </div>
-                        </div>
-
-                        <!-- Right column - Image -->
-                        <div class="w-full lg:w-1/3 flex flex-col">
-                            <div class="character-form-group">
-                                <label class="character-form-label">Character Image</label>
-                                <div class="character-image-container flex flex-col items-center justify-center bg-black/20 rounded-xl border border-white/10 p-3 min-h-[200px]">
-                                    <img id="character-preview-image" class="character-preview hidden max-w-full max-h-[200px] object-contain" alt="Character preview">
-                                    <div id="character-image-placeholder" class="character-image-placeholder flex flex-col items-center justify-center w-full h-full min-h-[150px] gap-3">
-                                        <i class="fas fa-user-circle text-5xl text-gray-400"></i>
-                                        <p class="text-sm text-gray-400 text-center">Upload an image for your character</p>
-                                    </div>
-                                </div>
-                                <label for="character-image-upload" class="character-upload-btn w-full justify-center mt-3">
-                                    <i class="fas fa-image"></i> Upload Image
-                                </label>
-                                <input type="file" id="character-image-upload" class="hidden" accept="image/*">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Character Personality and Scenario -->
-                    <div class="character-form-group">
-                        <label for="character-personality" class="character-form-label">Character Personality</label>
-                        <textarea id="character-personality" class="character-form-input character-form-textarea" placeholder="Describe personality traits, behavior patterns, and mannerisms"></textarea>
-                        <div class="text-xs text-gray-400 mt-1">How does your character behave, talk, and interact with others?</div>
-                    </div>
-
-                    <div class="character-form-group">
-                        <label for="character-scenario" class="character-form-label">Character Scenario</label>
-                        <textarea id="character-scenario" class="character-form-input character-form-textarea" placeholder="Describe the character's background, setting, or situation"></textarea>
-                        <div class="text-xs text-gray-400 mt-1">What is the character's backstory or the current situation they're in?</div>
-                    </div>
-
-                    <!-- Import Character Card -->
-                    <div class="character-form-group mt-6 border-t border-white/10 pt-5">
-                        <label class="character-form-label flex items-center">
-                            <i class="fas fa-file-import mr-2 text-blue-400"></i>
-                            Import Character Card
-                        </label>
-                        <div class="flex items-center gap-4">
-                            <label for="character-card-upload" class="character-upload-btn flex-1">
-                                <i class="fas fa-file-import"></i> Import Character Card
-                            </label>
-                            <input type="file" id="character-card-upload" class="hidden" accept=".json">
-                        </div>
-                        <p class="text-xs text-gray-400 mt-2">Upload a JSON character card file to import character data</p>
-                    </div>
-                </form>
-            </div>
-            <div class="character-modal-footer">
-                <button id="delete-character" class="character-delete-btn hidden">
-                    <i class="fas fa-trash-alt mr-2"></i> Delete
-                </button>
-                <button id="save-character" class="character-save-btn" form="character-form">
-                    <i class="fas fa-save mr-2"></i> Save Character
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete Character Confirmation Modal -->
-    <div id="delete-character-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center hidden modal-container z-[100]" aria-labelledby="delete-character-title" role="dialog" aria-modal="true">
-        <div class="bg-gradient-to-b from-[#2d0a0a] to-[#3d0d0d] p-6 rounded-xl w-[420px] max-w-[90%] shadow-2xl modal-content border border-red-900/30 overflow-hidden animate-modal-in">
-            <div class="flex justify-between items-center mb-4">
-                <h2 id="delete-character-title" class="text-xl font-bold flex items-center">
-                    <div class="icon-wrapper mr-3 flex items-center justify-center rounded-full bg-red-500/20 w-10 h-10 text-red-400">
-                        <i class="fas fa-trash-alt"></i>
-                    </div>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-300">Delete Character</span>
-                </h2>
-                <button id="close-delete-character-modal" class="text-gray-400 hover:text-white focus:outline-none transition-all duration-300 rounded-full w-8 h-8 flex items-center justify-center">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <div class="mb-6">
-                <div class="p-4 rounded-lg bg-red-900/20 border border-red-800/30 mb-4">
-                    <p class="text-gray-300 mb-2">Are you sure you want to delete this character?</p>
-                    <p class="text-red-300 text-sm flex items-start">
-                        <i class="fas fa-exclamation-triangle mt-0.5 mr-2"></i>
-                        <span>This action cannot be undone. The character will be permanently removed.</span>
-                    </p>
-                </div>
-
-                <div class="character-preview-container flex items-center p-3 rounded-lg bg-black/30 border border-white/5">
-                    <div id="delete-character-avatar" class="character-avatar w-12 h-12 rounded-full mr-4 flex-shrink-0 bg-gray-700 flex items-center justify-center overflow-hidden">
-                        <i class="fas fa-user text-gray-400"></i>
-                    </div>
-                    <div>
-                        <div id="delete-character-name" class="font-medium text-lg text-white"></div>
-                        <div id="delete-character-description" class="text-sm text-gray-400"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex justify-between space-x-4">
-                <button id="cancel-delete-character" class="flex-1 py-2.5 px-4 rounded-lg transition-all duration-300 bg-gray-700/50 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-600/30 hover:border-gray-500/50">
-                    <i class="fas fa-times mr-2"></i>Cancel
-                </button>
-                <button id="confirm-delete-character" class="flex-1 py-2.5 px-4 rounded-lg transition-all duration-300 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white shadow-lg hover:shadow-red-500/20 transform hover:-translate-y-0.5">
-                    <i class="fas fa-trash-alt mr-2"></i>Delete Character
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Character Gallery Container -->
-    <div id="character-gallery-container" class="character-gallery-container">
-        <div class="character-gallery-header">
-            <div class="character-gallery-title">
-                <i class="fas fa-user-circle"></i>
-                Character Gallery
-            </div>
-            <div class="character-gallery-actions">
-                <button id="character-gallery-create-btn" class="character-gallery-create-btn">
-                    <i class="fas fa-plus"></i>
-                    <span class="button-text-full">Create Character</span>
-                    <span class="button-text-short">Create</span>
-                </button>
-                <button id="character-gallery-import-btn" class="character-gallery-import-btn">
-                    <i class="fas fa-file-import"></i>
-                    <span class="button-text-full">Import Character</span>
-                    <span class="button-text-short">Import</span>
-                </button>
-                <button id="character-gallery-back-btn" class="character-gallery-back-btn">
-                    <i class="fas fa-arrow-left"></i>
-                    <span class="button-text-full">Back</span>
-                    <span class="button-text-short">Back</span>
-                </button>
-            </div>
-            <input type="file" id="character-gallery-import-input" class="hidden" accept=".json">
-        </div>
-        <div class="character-gallery-content">
-            <div id="character-gallery-empty" class="character-gallery-empty">
-                <div class="character-gallery-empty-container">
-                    <div class="character-gallery-empty-icon-container">
-                        <i class="fas fa-user-slash"></i>
-                    </div>
-                    <p>No characters created</p>
-                    <p class="character-gallery-empty-description">Create your first AI character to start personalized conversations</p>
-                    <button id="character-gallery-empty-create-btn" class="modern-button-primary">
-                        <i class="fas fa-plus"></i>
-                        Create a Character
-                    </button>
-                </div>
-            </div>
-            <div id="character-gallery-grid" class="character-gallery-grid">
-                <!-- Character cards will be dynamically added here -->
-            </div>
-        </div>
-    </div>
 
     <!-- Main application script with module imports -->
     <script type="module" src="js/app.js"></script>
