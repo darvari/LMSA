@@ -1519,6 +1519,27 @@ function handleSettingsButtonClick() {
  * Handles close settings button click
  */
 function handleCloseSettingsButtonClick() {
+    // Check for IP/Port validation errors before closing
+    const serverIpInput = document.getElementById('server-ip');
+    const serverPortInput = document.getElementById('server-port');
+    
+    if (serverIpInput && serverPortInput) {
+        const ip = serverIpInput.value.trim();
+        const port = serverPortInput.value.trim();
+        
+        // If either field has content but not both, prevent closing
+        if ((ip && !port) || (!ip && port)) {
+            // Trigger validation to show error message
+            const changeEvent = new Event('change', { bubbles: true });
+            if (ip && !port) {
+                serverPortInput.dispatchEvent(changeEvent);
+            } else {
+                serverIpInput.dispatchEvent(changeEvent);
+            }
+            return; // Don't close the modal
+        }
+    }
+
     // Immediately prevent any sidebar interactions
     document.body.removeEventListener('click', handleSidebarOutsideClick);
 

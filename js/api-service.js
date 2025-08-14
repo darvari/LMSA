@@ -17,11 +17,67 @@ export function updateServerUrl() {
     const ip = serverIpInput.value.trim();
     const port = serverPortInput.value.trim();
 
+    // Clear any previous validation errors
+    clearValidationErrors();
+
+    // If either field has content, both must be filled
+    if ((ip && !port) || (!ip && port)) {
+        showValidationError();
+        return;
+    }
+
     if (ip && port) {
         API_URL = `http://${ip}:${port}/v1/chat/completions`;
         localStorage.setItem('serverIp', ip);
         localStorage.setItem('serverPort', port);
         fetchAvailableModels();
+    }
+}
+
+/**
+ * Shows validation error for IP/Port fields
+ */
+function showValidationError() {
+    const ip = serverIpInput.value.trim();
+    const port = serverPortInput.value.trim();
+    
+    // Add error styling to both fields
+    serverIpInput.style.borderColor = '#ef4444';
+    serverPortInput.style.borderColor = '#ef4444';
+    
+    // Show error message
+    let errorContainer = document.getElementById('ip-port-error');
+    if (!errorContainer) {
+        errorContainer = document.createElement('div');
+        errorContainer.id = 'ip-port-error';
+        errorContainer.className = 'text-red-400 text-xs mt-1';
+        
+        // Insert after the IP/Port container
+        const ipPortContainer = document.querySelector('.ip-port-container');
+        if (ipPortContainer && ipPortContainer.parentNode) {
+            ipPortContainer.parentNode.insertBefore(errorContainer, ipPortContainer.nextSibling);
+        }
+    }
+    
+    if (ip && !port) {
+        errorContainer.textContent = 'Port is required when IP address is specified';
+    } else if (!ip && port) {
+        errorContainer.textContent = 'IP address is required when Port is specified';
+    }
+}
+
+/**
+ * Clears validation errors for IP/Port fields
+ */
+function clearValidationErrors() {
+    // Remove error styling
+    serverIpInput.style.borderColor = '';
+    serverPortInput.style.borderColor = '';
+    
+    // Remove error message
+    const errorContainer = document.getElementById('ip-port-error');
+    if (errorContainer) {
+        errorContainer.remove();
     }
 }
 

@@ -509,15 +509,24 @@
 .ip-port-container {
     position: relative;
     display: flex;
-    gap: 0.75rem; /* Increased gap between IP and port fields */
+    gap: 1rem; /* Increased gap between IP and port fields */
     width: 100%; /* Ensure container takes full width */
     padding: 0 0.1rem; /* Add slight padding to prevent edge cutoff */
     box-sizing: border-box; /* Ensure padding is included in width calculation */
 }
 
+/* IP input container */
+.ip-input-container {
+    flex: 1;
+    max-width: 65%; /* Limit IP field width to prevent it from being too wide */
+    min-width: 12rem; /* Ensure minimum width for IP container */
+    box-sizing: border-box;
+}
+
 /* Port input container */
 .port-input-container {
     min-width: 7rem; /* Ensure minimum width for port container */
+    max-width: 8rem; /* Limit port field width */
     flex-shrink: 0; /* Prevent container from shrinking */
     padding-right: 0.25rem; /* Add padding to prevent right edge cutoff */
     box-sizing: border-box; /* Ensure padding is included in width calculation */
