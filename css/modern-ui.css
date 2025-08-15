@@ -1133,6 +1133,9 @@ body.light-theme .modal-header {
     width: 34px !important;
     height: 34px !important;
     bottom: 80px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    right: auto !important;
   }
 
   #scroll-to-bottom i {
@@ -2732,14 +2735,14 @@ pre:hover {
   box-shadow: var(--modern-shadow-md);
   position: fixed;
   bottom: 100px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 50% !important;
+  transform: translateX(-50%) !important;
   z-index: 15;
   /* Increased z-index to be higher than active-character-display */
   opacity: 0;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   /* Remove conflicting positioning properties */
-  right: auto;
+  right: auto !important;
   pointer-events: auto !important;
   /* Ensure the button is always clickable */
 }

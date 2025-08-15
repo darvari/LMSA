@@ -1614,3 +1614,16 @@ if (typeof window !== 'undefined') {
         }
     };
 }
+
+/**
+ * Hides the scroll-to-bottom button
+ * Utility function to avoid code duplication across chat switching functions
+ */
+export function hideScrollToBottomButton() {
+    const scrollButton = document.getElementById('scroll-to-bottom');
+    if (scrollButton) {
+        scrollButton.classList.remove('visible', 'show');
+        scrollButton.classList.add('hidden');
+        console.log('Scroll-to-bottom button hidden during chat/screen transition');
+    }
+}
