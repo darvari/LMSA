@@ -70,9 +70,6 @@
             }
             
             /* Mobile loading state */
-            .mobile-optimized {
-                /* Add mobile-specific loading styles */
-            }
             
             .mobile-optimized #loading-indicator {
                 /* Simplified loading indicator for mobile */
@@ -956,6 +953,8 @@
                                     <span>Models</span>
                                 </button>
 
+
+
                                 <!-- Secondary buttons in a 2-column grid with professional styling -->
                                 <div class="grid grid-cols-2 gap-3 w-full">
                                     <button id="welcome-new-chat-btn" class="professional-button flex items-center justify-center gap-2 w-full h-[48px]">
@@ -1719,7 +1718,7 @@
                     <i class="fas fa-times"></i>
                 </button>
                 <div class="version-badge bg-white/10 px-4 py-1.5 rounded-full mx-auto w-fit mt-2">
-                    <p class="text-sm font-medium text-blue-300">Version 6.5</p>
+                    <p class="text-sm font-medium text-blue-300">Version 7.0</p>
                 </div>
             </div>
 
@@ -1941,7 +1940,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-blue-400 font-extrabold">What's New</span>
-                        <span class="text-xs text-blue-300/80 font-medium">v<span id="whats-new-version">5.5</span></span>
+                        <span class="text-xs text-blue-300/80 font-medium">v<span id="whats-new-version">7.0</span></span>
                     </div>
                 </h2>
                 <button id="close-whats-new" class="text-gray-400 hover:text-white focus:outline-none transition-all duration-300 rounded-full w-8 h-8 flex items-center justify-center hover:rotate-90 transform">
@@ -1951,6 +1950,27 @@
 
             <div class="features-container overflow-y-auto flex-grow px-1 py-2">
                 <div class="space-y-3">
+                    <div class="feature-item">
+                        <div class="relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-24 h-24 -mt-8 -mr-8 bg-gradient-to-br from-green-500/10 to-emerald-700/5 rounded-full blur-xl"></div>
+                            <div class="flex items-start relative z-10">
+                                <div class="feature-icon-wrapper mr-3 flex items-center justify-center rounded-full bg-green-500/20 w-10 h-10 shadow-sm">
+                                    <i class="fas fa-rocket text-green-400"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center">
+                                        <h3 class="feature-title">Performance Optimization & System Prompts</h3>
+                                        <span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full ml-2 font-semibold">Enhanced</span>
+                                    </div>
+                                    <div class="feature-description">
+                                        <p class="mb-3">The app has been fully optimized to run better on more devices with improved performance, reduced memory usage, and enhanced stability across different hardware configurations.</p>
+                                        <p class="mb-3">The character feature has been replaced with the ability to save system prompts, providing a more flexible and powerful way to customize your AI interactions. You can now create, save, and manage multiple system prompts for different use cases.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="feature-item">
                         <div class="relative overflow-hidden">
                             <div class="absolute top-0 right-0 w-24 h-24 -mt-8 -mr-8 bg-gradient-to-br from-indigo-500/10 to-purple-700/5 rounded-full blur-xl"></div>

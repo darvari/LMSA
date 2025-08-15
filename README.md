@@ -1,4 +1,4 @@
-# 📱 LMSA - LM Studio Android 
+# LMSA - LM Studio Android 
 ![Status: Open Source](https://img.shields.io/badge/Status-Open%20Source-brightgreen)
 ![Version: Current](https://img.shields.io/badge/Version-Current-green)
 ![Release: Community](https://img.shields.io/badge/Release-Community%20Driven-blue)
@@ -13,19 +13,17 @@
 </p>
 
 ## 🆕 What's New
-🎉 **Latest Update: Version 6.5** - Now Available!
+🎉 **Latest Update: Version 7.0** - Now Available!
 
 ### New Features & Improvements
-- **Added Scroll to Bottom Icon**: Enhanced navigation with a convenient scroll to bottom button for easier chat management
-- **Improved Welcome Screen Behavior**: Welcome screen now intelligently hides when the message input field is in focus for a seamless user experience
-- **Performance Optimization**: Made the app lighter and more responsive with comprehensive performance improvements
+- **Performance Optimization**: The app has been fully optimized to run better on more devices with improved performance, reduced memory usage, and enhanced stability across different hardware configurations
+- **System Prompts Feature**: The character feature has been replaced with the ability to save system prompts, providing a more flexible and powerful way to customize your AI interactions. You can now create, save, and manage multiple system prompts for different use cases
+- **Enhanced Compatibility**: Improved device compatibility and performance optimizations for a smoother experience across various Android devices
 
 ### Previous Updates
-- **Disabled Auto-scroll Feature**: Disabled the auto-scroll feature to improve chat experience
-- **Fixed Keyboard Overlap Issue**: Resolved an issue where the keyboard was overlapping UI elements on certain devices
-- **Removed Scroll to Bottom Option**: Temporarily removed the scroll to bottom option from the press and hold menu
-- **Vision Language Model Support**: Added full support for vision language models (VLMs). You can now upload and analyze images alongside text, enabling multimodal conversations with AI models that can understand and discuss visual content.
-- **Fixed PDF File Attachments**: Resolved the issue where PDF files weren't allowed as attachments. You can now upload and analyze PDF documents seamlessly with your AI models.
+- **Version 6.5**: Added scroll to bottom icon, improved welcome screen behavior, and comprehensive performance improvements
+- **Version 5.5**: Added full Vision Language Model (VLM) support for image upload and analysis, enabling multimodal conversations with AI models
+- **Bug Fixes**: Resolved keyboard overlap issues, fixed PDF file attachments, and disabled auto-scroll feature for better chat experience
 
 ---
 

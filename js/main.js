@@ -400,4 +400,6 @@ function initializeAndroidKeyboardFix() {
 }
 
 // Initialize the application when the DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeApp);
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});

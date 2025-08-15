@@ -10,6 +10,7 @@ import {
 import { isAndroidWebView, isMobileDevice } from './utils.js';
 import { showExportConfirmationModal, hideExportConfirmationModal, checkAndShowWelcomeMessage } from './ui-manager.js';
 import { setActionToPerform, getActionToPerform } from './shared-state.js';
+import { getSavedSystemPrompts, restoreSavedSystemPrompts } from './saved-system-prompts.js';
 
 // Variable to store the selected file for import
 let selectedImportFile = null;
@@ -160,9 +161,23 @@ export function initializeExportImport() {
                 // Debug: Log the imported data to see if titles are present
                 console.log('Imported data before processing:', JSON.stringify(importedData));
 
+                // Check if this is the new format with separate chats and savedSystemPrompts
+                let chatsToImport, savedSystemPromptsToImport;
+                if (importedData.chats && importedData.exportVersion) {
+                    // New format
+                    console.log('Detected new export format with version:', importedData.exportVersion);
+                    chatsToImport = importedData.chats;
+                    savedSystemPromptsToImport = importedData.savedSystemPrompts || {};
+                } else {
+                    // Old format - treat entire data as chats
+                    console.log('Detected old export format (chats only)');
+                    chatsToImport = importedData;
+                    savedSystemPromptsToImport = {};
+                }
+
                 // Process and normalize all chats in the imported data
-                for (const key in importedData) {
-                    const chatData = importedData[key];
+                for (const key in chatsToImport) {
+                    const chatData = chatsToImport[key];
 
                     // If it's in the old format (array with title property), convert to new format
                     if (Array.isArray(chatData)) {
@@ -203,7 +218,7 @@ export function initializeExportImport() {
                         }
 
                         // Convert to new format
-                        importedData[key] = {
+                        chatsToImport[key] = {
                             messages: oldMessages,
                             title: oldTitle
                         };
@@ -251,10 +266,10 @@ export function initializeExportImport() {
                 let updatedChatData;
                 if (importOption === 'replace') {
                     // Replace all existing chats
-                    updatedChatData = importedData;
+                    updatedChatData = chatsToImport;
                 } else {
                     // Merge with existing chats
-                    updatedChatData = { ...chatHistoryData, ...importedData };
+                    updatedChatData = { ...chatHistoryData, ...chatsToImport };
                 }
 
                 // Debug: Log the updated data to see if titles are preserved
@@ -275,8 +290,17 @@ export function initializeExportImport() {
                 // This ensures the chatHistoryData variable in chat-service.js is updated
                 loadChatHistory();
 
-                // Get the number of imported chats
-                const chatCount = Object.keys(importedData).length;
+                // Import saved system prompts if any
+                if (Object.keys(savedSystemPromptsToImport).length > 0) {
+                    console.log('Importing saved system prompts:', savedSystemPromptsToImport);
+                    restoreSavedSystemPrompts(savedSystemPromptsToImport, importOption === 'replace');
+                } else {
+                    console.log('No saved system prompts to import');
+                }
+
+                // Get the number of imported chats and prompts
+                const chatCount = Object.keys(chatsToImport).length;
+                const promptCount = Object.keys(savedSystemPromptsToImport).length;
 
                 // Hide the import modal
                 hideImportModal();
@@ -284,8 +308,8 @@ export function initializeExportImport() {
                 // Clear the selected file
                 selectedImportFile = null;
 
-                // Show the success modal with the chat count
-                showImportSuccessModal(chatCount);
+                // Show the success modal with the chat and prompt count
+                showImportSuccessModal(chatCount, promptCount);
 
             } catch (error) {
                 console.error('Error importing chats:', error);
@@ -326,37 +350,105 @@ export function initializeExportImport() {
             return false;
         }
 
+        // Check if this is the new format (has chats and/or savedSystemPrompts)
+        const hasChats = data.hasOwnProperty('chats');
+        const hasSavedSystemPrompts = data.hasOwnProperty('savedSystemPrompts');
+        const hasExportVersion = data.hasOwnProperty('exportVersion');
+        
+        if (hasChats || hasSavedSystemPrompts || hasExportVersion) {
+            console.log('Detected new export format');
+            
+            // Validate chats if present
+            if (hasChats) {
+                if (!validateChatData(data.chats)) {
+                    return false;
+                }
+            }
+            
+            // Validate saved system prompts if present
+            if (hasSavedSystemPrompts) {
+                if (!validateSavedSystemPrompts(data.savedSystemPrompts)) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // Old format: validate as chat data directly
+        console.log('Detected old export format (chat data only)');
+        return validateChatData(data);
+    }
+    
+    /**
+     * Validates saved system prompts data
+     * @param {Array} prompts - The saved system prompts array
+     * @returns {boolean} - Whether the data is valid
+     */
+    function validateSavedSystemPrompts(prompts) {
+        if (!Array.isArray(prompts)) {
+            console.error('Import validation failed: savedSystemPrompts is not an array');
+            return false;
+        }
+        
+        for (let i = 0; i < prompts.length; i++) {
+            const prompt = prompts[i];
+            if (!prompt || typeof prompt !== 'object') {
+                console.error(`Import validation failed: savedSystemPrompts[${i}] is not an object`);
+                return false;
+            }
+            
+            if (!prompt.id || !prompt.name || !prompt.content) {
+                console.error(`Import validation failed: savedSystemPrompts[${i}] missing required fields (id, name, content)`);
+                return false;
+            }
+            
+            if (typeof prompt.id !== 'string' || typeof prompt.name !== 'string' || typeof prompt.content !== 'string') {
+                console.error(`Import validation failed: savedSystemPrompts[${i}] has invalid field types`);
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Validates chat data
+     * @param {Object} chatData - The chat data object
+     * @returns {boolean} - Whether the data is valid
+     */
+    function validateChatData(chatData) {
         // Check if each key is a valid chat ID (numeric string)
-        for (const key in data) {
+        for (const key in chatData) {
             if (!/^\d+$/.test(key)) {
                 console.error(`Import validation failed: Invalid chat ID format: ${key}`);
                 return false;
             }
 
             // Get the chat data
-            const chatData = data[key];
+            const chatDataItem = chatData[key];
 
             // Debug: Log the chat data structure
             console.log(`Validating chat ${key}:`, {
-                isArray: Array.isArray(chatData),
-                type: typeof chatData,
-                hasMessages: chatData && chatData.messages ? true : false,
-                hasTitle: chatData && 'title' in chatData ? true : false
+                isArray: Array.isArray(chatDataItem),
+                type: typeof chatDataItem,
+                hasMessages: chatDataItem && chatDataItem.messages ? true : false,
+                hasTitle: chatDataItem && 'title' in chatDataItem ? true : false
             });
 
             // Handle both old format (array) and new format (object with messages and title)
-            if (Array.isArray(chatData)) {
+            if (Array.isArray(chatDataItem)) {
                 // Old format: array with optional title property
 
                 // Check if the array has at least one message
-                if (chatData.length === 0) {
+                if (chatDataItem.length === 0) {
                     console.warn(`Chat ${key} has no messages, but continuing validation`);
                     // We'll allow empty chats - they're not ideal but shouldn't break import
                 }
 
                 // Check if each item in the array has role and content properties
-                for (let i = 0; i < chatData.length; i++) {
-                    const item = chatData[i];
+                for (let i = 0; i < chatDataItem.length; i++) {
+                    const item = chatDataItem[i];
 
                     // Skip checking properties on the title (which might be attached to the array)
                     if (i === 'title') continue;
@@ -379,48 +471,48 @@ export function initializeExportImport() {
                 }
 
                 // Check if the title property exists and handle different types
-                if (chatData.title !== undefined) {
-                    console.log(`Chat ${key} title type: ${typeof chatData.title}`, chatData.title);
+                if (chatDataItem.title !== undefined) {
+                    console.log(`Chat ${key} title type: ${typeof chatDataItem.title}`, chatDataItem.title);
 
                     // If title is an object, try to convert it to a string
-                    if (typeof chatData.title === 'object' && chatData.title !== null) {
+                    if (typeof chatDataItem.title === 'object' && chatDataItem.title !== null) {
                         console.warn(`Converting object title to string for chat ${key}`);
                         try {
                             // Try to stringify the object or use a default title
-                            chatData.title = JSON.stringify(chatData.title) || 'Imported Chat';
+                            chatDataItem.title = JSON.stringify(chatDataItem.title) || 'Imported Chat';
                         } catch (e) {
                             console.warn(`Failed to stringify title object, using default title`);
-                            chatData.title = 'Imported Chat';
+                            chatDataItem.title = 'Imported Chat';
                         }
-                    } else if (typeof chatData.title !== 'string') {
+                    } else if (typeof chatDataItem.title !== 'string') {
                         // For other non-string types, convert to string
-                        console.warn(`Converting ${typeof chatData.title} title to string for chat ${key}`);
-                        chatData.title = String(chatData.title);
+                        console.warn(`Converting ${typeof chatDataItem.title} title to string for chat ${key}`);
+                        chatDataItem.title = String(chatDataItem.title);
                     }
                 }
-            } else if (typeof chatData === 'object' && chatData !== null) {
+            } else if (typeof chatDataItem === 'object' && chatDataItem !== null) {
                 // New format: object with messages array and title property
 
                 // Check if the messages property exists and is an array
-                if (!chatData.messages) {
+                if (!chatDataItem.messages) {
                     console.error(`Import validation failed: Chat ${key} is missing messages property`);
                     return false;
                 }
 
-                if (!Array.isArray(chatData.messages)) {
+                if (!Array.isArray(chatDataItem.messages)) {
                     console.error(`Import validation failed: Chat ${key} messages is not an array`);
                     return false;
                 }
 
                 // Check if the array has at least one message
-                if (chatData.messages.length === 0) {
+                if (chatDataItem.messages.length === 0) {
                     console.warn(`Chat ${key} has no messages, but continuing validation`);
                     // We'll allow empty chats - they're not ideal but shouldn't break import
                 }
 
                 // Check if each item in the messages array has role and content properties
-                for (let i = 0; i < chatData.messages.length; i++) {
-                    const item = chatData.messages[i];
+                for (let i = 0; i < chatDataItem.messages.length; i++) {
+                    const item = chatDataItem.messages[i];
 
                     if (!item || typeof item !== 'object') {
                         console.error(`Import validation failed: Chat ${key} message ${i} is not an object`);
@@ -440,23 +532,23 @@ export function initializeExportImport() {
                 }
 
                 // Check if the title property exists and handle different types
-                if (chatData.title !== undefined) {
-                    console.log(`Chat ${key} title type: ${typeof chatData.title}`, chatData.title);
+                if (chatDataItem.title !== undefined) {
+                    console.log(`Chat ${key} title type: ${typeof chatDataItem.title}`, chatDataItem.title);
 
                     // If title is an object, try to convert it to a string
-                    if (typeof chatData.title === 'object' && chatData.title !== null) {
+                    if (typeof chatDataItem.title === 'object' && chatDataItem.title !== null) {
                         console.warn(`Converting object title to string for chat ${key}`);
                         try {
                             // Try to stringify the object or use a default title
-                            chatData.title = JSON.stringify(chatData.title) || 'Imported Chat';
+                            chatDataItem.title = JSON.stringify(chatDataItem.title) || 'Imported Chat';
                         } catch (e) {
                             console.warn(`Failed to stringify title object, using default title`);
-                            chatData.title = 'Imported Chat';
+                            chatDataItem.title = 'Imported Chat';
                         }
-                    } else if (typeof chatData.title !== 'string') {
+                    } else if (typeof chatDataItem.title !== 'string') {
                         // For other non-string types, convert to string
-                        console.warn(`Converting ${typeof chatData.title} title to string for chat ${key}`);
-                        chatData.title = String(chatData.title);
+                        console.warn(`Converting ${typeof chatDataItem.title} title to string for chat ${key}`);
+                        chatDataItem.title = String(chatDataItem.title);
                     }
                 }
             } else {
@@ -466,9 +558,13 @@ export function initializeExportImport() {
             }
         }
 
-        console.log('Import validation successful');
+        console.log('Chat data validation successful');
         return true;
     }
+
+    console.log('Import validation successful');
+    return true;
+}
 
     /**
      * Shows the import modal
@@ -552,11 +648,18 @@ export function initializeExportImport() {
     /**
      * Shows the import success modal with a message
      * @param {number} chatCount - The number of chats imported
+     * @param {number} promptCount - The number of saved system prompts imported
      */
-    function showImportSuccessModal(chatCount) {
+    function showImportSuccessModal(chatCount, promptCount = 0) {
         if (importSuccessModal && importSuccessMessage) {
-            // Set the success message with the chat count
-            importSuccessMessage.textContent = `Successfully imported ${chatCount} chat${chatCount !== 1 ? 's' : ''}.`;
+            // Create the success message
+            let message = `Successfully imported ${chatCount} chat${chatCount !== 1 ? 's' : ''}`;
+            if (promptCount > 0) {
+                message += ` and ${promptCount} saved system prompt${promptCount !== 1 ? 's' : ''}`;
+            }
+            message += '.';
+            
+            importSuccessMessage.textContent = message;
 
             // Show the modal
             importSuccessModal.classList.remove('hidden');
@@ -777,7 +880,6 @@ export function initializeExportImport() {
             }
         }
     }
-}
 
 /**
  * Exports the chat history to a file
@@ -785,9 +887,20 @@ export function initializeExportImport() {
 export function exportChats() {
     // Get the chat history data
     const chatHistoryData = getChatHistoryData();
+    
+    // Get saved system prompts
+    const savedSystemPrompts = getSavedSystemPrompts();
+    
+    // Create export data structure that includes both chats and saved system prompts
+    const exportData = {
+        chats: chatHistoryData,
+        savedSystemPrompts: savedSystemPrompts,
+        exportVersion: '1.1', // Version to help with future compatibility
+        exportDate: new Date().toISOString()
+    };
 
-    // Create a JSON string from the chat history data
-    const jsonString = JSON.stringify(chatHistoryData, null, 2);
+    // Create a JSON string from the export data
+    const jsonString = JSON.stringify(exportData, null, 2);
 
     // Generate a filename with the current date and time
     const date = new Date();
@@ -847,15 +960,18 @@ export function exportChats() {
         URL.revokeObjectURL(url);
     }
 
-    // Count the number of chats exported
-    const chatCount = Object.keys(chatHistoryData).length;
+    // Count the number of chats and saved system prompts exported
+    const chatCount = Object.keys(exportData.chats).length;
+    const promptCount = exportData.savedSystemPrompts.length;
 
     // Show the export success modal if it's available
     if (typeof showExportSuccessModal === 'function') {
-        showExportSuccessModal(chatCount);
+        showExportSuccessModal(chatCount, promptCount);
     } else if (exportSuccessModal && exportSuccessMessage) {
         // Fallback if the function is not available
-        exportSuccessMessage.textContent = `Successfully exported ${chatCount} chat${chatCount !== 1 ? 's' : ''}.`;
+        const chatText = `${chatCount} chat${chatCount !== 1 ? 's' : ''}`;
+        const promptText = `${promptCount} saved system prompt${promptCount !== 1 ? 's' : ''}`;
+        exportSuccessMessage.textContent = `Successfully exported ${chatText} and ${promptText}.`;
         exportSuccessModal.classList.remove('hidden');
         const modalContent = exportSuccessModal.querySelector('.modal-content');
         if (modalContent) {
