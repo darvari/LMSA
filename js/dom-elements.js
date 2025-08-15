@@ -198,3 +198,9 @@ export const welcomeModelsBtn = document.getElementById('welcome-models-btn');
 export const welcomeNewChatBtn = document.getElementById('welcome-new-chat-btn');
 export const welcomeHelpBtn = document.getElementById('welcome-help-btn');
 
+// Saved System Prompts Elements
+export const savedPromptsButton = document.getElementById('saved-prompts-btn');
+export const saveSystemPromptButton = document.getElementById('save-system-prompt-btn');
+export const savedPromptsModal = document.getElementById('saved-prompts-modal');
+export const closeSavedPromptsModal = document.getElementById('close-saved-prompts-modal');
+export const savedPromptsList = document.getElementById('saved-prompts-list');

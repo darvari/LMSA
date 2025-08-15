@@ -335,7 +335,7 @@ class MemoryLeakDetector {
         const cleanup = () => this.cleanup();
         
         window.addEventListener('beforeunload', cleanup);
-        window.addEventListener('unload', cleanup);
+        window.addEventListener('pagehide', cleanup);
         
         // Also cleanup on visibility change to hidden (mobile background)
         document.addEventListener('visibilitychange', () => {

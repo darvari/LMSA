@@ -166,6 +166,15 @@ async function initializeApp() {
     initializeCollapsibleSections();
     initializeSettingsModal();
     
+    // Initialize saved system prompts functionality
+    try {
+        const { initializeSavedSystemPrompts } = await import('./saved-system-prompts.js');
+        initializeSavedSystemPrompts();
+        loadingManager.updateFeatureProgress('saved-prompts');
+    } catch (error) {
+        console.error('Error initializing saved system prompts:', error);
+    }
+    
     initializeExportImport();
     initializeWhatsNew();
     

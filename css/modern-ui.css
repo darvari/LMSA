@@ -3,6 +3,9 @@
  * A comprehensive CSS framework to transform the UI into a professional, modern and creative interface
  */
 
+/* Font and loader for modern UI */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 :root {
   /* Modern Color Palette - Dark Theme */
   --modern-bg-primary: #0f172a;
@@ -2852,9 +2855,6 @@ body.light-theme .glass-card {
   /* Add a subtle inner shadow to create depth */
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
-
-/* Font and loader for modern UI */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* Professional Glass Style Button Implementation */
 .professional-button {
