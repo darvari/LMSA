@@ -1175,14 +1175,14 @@
 
     <!-- Settings modal -->
     <div id="settings-modal" class="fixed inset-0 flex items-center justify-center hidden modal-container" aria-labelledby="settings-title" role="dialog" aria-modal="true">
-        <div class="p-6 rounded-lg w-96 max-w-[90%] shadow-lg modal-content border border-white/10">
+        <div class="modal-content">
             <!-- Settings Header -->
             <div class="flex flex-col sticky top-0 z-10 mb-6 pb-1 border-b border-gray-700/30 bg-inherit">
                 <div class="flex justify-between items-center mb-2">
                     <h2 id="settings-title" class="text-xl font-bold flex items-center">
                         <i class="fas fa-cog text-blue-400 mr-2"></i>Settings
                     </h2>
-                    <button id="close-settings-x" class="text-gray-400 hover:text-white focus:outline-none transition-all duration-300 ease-in-out rounded-full hover:bg-gray-800/50 w-8 h-8 flex items-center justify-center" aria-label="Close settings">
+                    <button id="close-settings-x" aria-label="Close settings">
                         <i class="fas fa-times text-lg"></i>
                     </button>
                 </div>

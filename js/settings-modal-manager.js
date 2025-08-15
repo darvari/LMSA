@@ -46,7 +46,7 @@ export function showSettingsModal() {
     if (connectionLabelContainer) connectionLabelContainer.style.display = '';
     if (urlInfoContainer) urlInfoContainer.style.display = '';
 
-    // Get the modal content
+    // Get the modal content and ensure proper mobile positioning
     const modalContent = settingsModal.querySelector('.modal-content');
     if (modalContent) {
         // Remove all inline styles that might be overriding our CSS
@@ -56,6 +56,44 @@ export function showSettingsModal() {
         modalContent.style.removeProperty('opacity');
         modalContent.style.removeProperty('transform');
         modalContent.style.removeProperty('transition');
+        modalContent.style.removeProperty('width');
+        modalContent.style.removeProperty('max-width');
+        modalContent.style.removeProperty('height');
+        modalContent.style.removeProperty('max-height');
+        modalContent.style.removeProperty('top');
+        modalContent.style.removeProperty('left');
+        modalContent.style.removeProperty('margin');
+        
+        // Add mobile viewport detection and handling
+        if (window.innerWidth <= 767) {
+            modalContent.classList.add('mobile-modal');
+            // Force viewport-based sizing for mobile
+            modalContent.style.position = 'fixed';
+            modalContent.style.top = '50%';
+            modalContent.style.left = '50%';
+            modalContent.style.transform = 'translate(-50%, -50%)';
+            
+            // Adjust width based on screen size
+            if (window.innerWidth <= 375) {
+                modalContent.style.width = 'calc(100vw - 16px)';
+                modalContent.style.maxWidth = 'calc(100vw - 16px)';
+            } else if (window.innerWidth <= 480) {
+                modalContent.style.width = '96vw';
+                modalContent.style.maxWidth = '96vw';
+            } else {
+                modalContent.style.width = '95vw';
+                modalContent.style.maxWidth = '95vw';
+            }
+            
+            modalContent.style.maxHeight = '90vh';
+            if (window.visualViewport) {
+                modalContent.style.maxHeight = '90dvh';
+            }
+            modalContent.style.overflow = 'hidden';
+            modalContent.style.boxSizing = 'border-box';
+        } else {
+            modalContent.classList.remove('mobile-modal');
+        }
     }
 
 
@@ -441,6 +479,48 @@ export function initializeSettingsModalNavigation() {
     // Handle window resize to toggle between mobile and desktop views
     window.addEventListener('resize', () => {
         const navButtons = document.getElementById('settings-navigation-buttons');
+        
+        // Update modal positioning on resize if modal is open
+        if (settingsModal && !settingsModal.classList.contains('hidden')) {
+            const modalContent = settingsModal.querySelector('.modal-content');
+            if (modalContent) {
+                if (window.innerWidth <= 767) {
+                    modalContent.classList.add('mobile-modal');
+                    // Reapply mobile positioning
+                    modalContent.style.position = 'fixed';
+                    modalContent.style.top = '50%';
+                    modalContent.style.left = '50%';
+                    modalContent.style.transform = 'translate(-50%, -50%)';
+                    
+                    // Adjust width based on new screen size
+                    if (window.innerWidth <= 375) {
+                        modalContent.style.width = 'calc(100vw - 16px)';
+                        modalContent.style.maxWidth = 'calc(100vw - 16px)';
+                    } else if (window.innerWidth <= 480) {
+                        modalContent.style.width = '96vw';
+                        modalContent.style.maxWidth = '96vw';
+                    } else {
+                        modalContent.style.width = '95vw';
+                        modalContent.style.maxWidth = '95vw';
+                    }
+                    
+                    modalContent.style.maxHeight = '90vh';
+                    if (window.visualViewport) {
+                        modalContent.style.maxHeight = '90dvh';
+                    }
+                } else {
+                    modalContent.classList.remove('mobile-modal');
+                    // Clear mobile-specific styles for desktop
+                    modalContent.style.removeProperty('position');
+                    modalContent.style.removeProperty('top');
+                    modalContent.style.removeProperty('left');
+                    modalContent.style.removeProperty('transform');
+                    modalContent.style.removeProperty('width');
+                    modalContent.style.removeProperty('max-width');
+                    modalContent.style.removeProperty('max-height');
+                }
+            }
+        }
 
         if (window.innerWidth >= 1024) {
             // Desktop view - show all steps
