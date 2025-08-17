@@ -1,3 +1,90 @@
+/**
+ * Builds the full server URL for a given endpoint using current settings
+ * @param {string} endpoint - The API endpoint (e.g. '/v1/models')
+ * @returns {string} - The full server URL
+ */
+export function getServerUrl(endpoint = '') {
+    const serverIpInput = document.getElementById('server-ip');
+    const serverPortInput = document.getElementById('server-port');
+    const sslSwitch = document.getElementById('server-ssl-switch');
+    let host = serverIpInput?.value.trim() || '';
+    let port = serverPortInput?.value.trim() || '';
+    let useSSL = sslSwitch && sslSwitch.checked;
+
+    // If user enters a full URL, parse protocol and host
+    let parsedHost = host;
+    let parsedSSL = useSSL;
+    if (/^https?:\/\//i.test(host)) {
+        const urlObj = new URL(host);
+        parsedHost = urlObj.hostname;
+        parsedSSL = urlObj.protocol === 'https:';
+        if (!port && urlObj.port) {
+            port = urlObj.port;
+        }
+    }
+
+    // Force SSL for public domains (not local IPs)
+    if (!parsedSSL && parsedHost && !/^((localhost)|(127\.)|(10\.)|(192\.168\.)|(172\.(1[6-9]|2[0-9]|3[0-1])))/.test(parsedHost)) {
+        parsedSSL = true;
+    }
+
+    if (parsedSSL && !port) port = '443';
+    if (!parsedSSL && !port) port = '1234';
+
+    // Omit port for standard protocols
+    let omitPort = (parsedSSL && port === '443') || (!parsedSSL && port === '80');
+    let url = `${parsedSSL ? 'https' : 'http'}://${parsedHost}`;
+    if (port && !omitPort) url += `:${port}`;
+    if (endpoint) url += endpoint;
+    return url;
+}
+// Test server response utility
+export function testServerResponse() {
+    const serverIpInput = document.getElementById('server-ip');
+    const serverPortInput = document.getElementById('server-port');
+    const sslSwitch = document.getElementById('server-ssl-switch');
+    const resultDiv = document.getElementById('test-server-result');
+    if (!serverIpInput || !serverPortInput || !resultDiv) return;
+
+    let host = serverIpInput.value.trim();
+    let port = serverPortInput.value.trim();
+    let useSSL = sslSwitch && sslSwitch.checked;
+
+    // If user enters a full URL, parse protocol and host
+    let parsedHost = host;
+    let parsedSSL = useSSL;
+    if (/^https?:\/\//i.test(host)) {
+        const urlObj = new URL(host);
+        parsedHost = urlObj.hostname;
+        parsedSSL = urlObj.protocol === 'https:';
+        if (!port && urlObj.port) {
+            port = urlObj.port;
+        }
+    }
+    if (parsedSSL && !port) port = '443';
+    if (!parsedSSL && !port) port = '1234';
+
+    const url = `${parsedSSL ? 'https' : 'http'}://${parsedHost}:${port}/v1/models`;
+    resultDiv.textContent = 'Testing...';
+    fetch(url, { method: 'GET' })
+        .then(response => {
+            if (response.ok) {
+                resultDiv.textContent = `✅ Server responded with status 200 OK.`;
+            } else {
+                resultDiv.textContent = `❌ Server responded with status ${response.status}.`;
+            }
+        })
+        .catch(err => {
+            resultDiv.textContent = `❌ Error: ${err.message}`;
+        });
+}
+// Attach test button event listener on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    const testBtn = document.getElementById('test-server-btn');
+    if (testBtn) {
+        testBtn.addEventListener('click', testServerResponse);
+    }
+});
 // API Service for handling server communication
 import { serverIpInput, serverPortInput, loadedModelDisplay } from './dom-elements.js';
 import { getLightThemeEnabled } from './settings-manager.js';
@@ -14,24 +101,57 @@ window.isInitialStartup = true;
  * Updates the server URL based on IP and port inputs
  */
 export function updateServerUrl() {
-    const ip = serverIpInput.value.trim();
-    const port = serverPortInput.value.trim();
+    const host = serverIpInput.value.trim(); // now can be IP or domain
+    let port = serverPortInput.value.trim();
+    const sslSwitch = document.getElementById('server-ssl-switch');
+    const useSSL = sslSwitch && sslSwitch.checked;
 
     // Clear any previous validation errors
     clearValidationErrors();
 
-    // If either field has content, both must be filled
-    if ((ip && !port) || (!ip && port)) {
-        showValidationError();
+    // Host is required
+    if (!host) {
+        showValidationError('Host is required');
         return;
     }
 
-    if (ip && port) {
-        API_URL = `http://${ip}:${port}/v1/chat/completions`;
-        localStorage.setItem('serverIp', ip);
-        localStorage.setItem('serverPort', port);
-        fetchAvailableModels();
+    // If user enters a full URL, parse protocol and host
+    let parsedHost = host;
+    let parsedSSL = useSSL;
+    if (/^https?:\/\//i.test(host)) {
+        const urlObj = new URL(host);
+        parsedHost = urlObj.hostname;
+        parsedSSL = urlObj.protocol === 'https:';
+        if (!port && urlObj.port) {
+            port = urlObj.port;
+        }
     }
+
+    // If SSL is enabled and no port, default to 443
+    if (parsedSSL && !port) {
+        port = '443';
+        const serverPortInput = document.getElementById('server-port');
+        if (serverPortInput) serverPortInput.value = '443';
+    }
+    // If not using SSL and no port, default to 1234
+    if (!parsedSSL && !port) {
+        port = '1234';
+        const serverPortInput = document.getElementById('server-port');
+        if (serverPortInput) serverPortInput.value = '1234';
+    }
+
+    // If port is provided, include it in the URL
+    let url;
+    if (port) {
+        url = `${parsedSSL ? 'https' : 'http'}://${parsedHost}:${port}/v1/chat/completions`;
+    } else {
+        url = `${parsedSSL ? 'https' : 'http'}://${parsedHost}/v1/chat/completions`;
+    }
+    API_URL = url;
+    localStorage.setItem('serverIp', parsedHost);
+    localStorage.setItem('serverPort', port);
+    localStorage.setItem('serverSSL', parsedSSL ? 'true' : 'false');
+    fetchAvailableModels();
 }
 
 /**
@@ -92,20 +212,15 @@ export async function fetchAvailableModels() {
             return [];
         }
 
-        const ip = serverIpInput.value.trim();
-        const port = serverPortInput.value.trim();
-
-        if (!ip || !port) {
-            console.error('Server IP or port is empty');
-            return [];
-        }
+        // Build the full models endpoint URL
+        const modelsUrl = getServerUrl('/v1/models');
 
         // Add a timeout to the fetch request to prevent long waits
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
         try {
-            const modelsResponse = await fetch(`http://${ip}:${port}/v1/models`, {
+            const modelsResponse = await fetch(modelsUrl, {
                 signal: controller.signal
             });
 
@@ -167,7 +282,7 @@ export async function fetchAvailableModels() {
                             const controller = new AbortController();
                             const timeoutId = setTimeout(() => controller.abort(), 2000); // shorter timeout for info endpoints
 
-                            const modelInfoResponse = await fetch(`http://${ip}:${port}${endpoint}`, {
+                            const modelInfoResponse = await fetch(getServerUrl(endpoint), {
                                 method: 'GET',
                                 signal: controller.signal
                             }).catch(() => {
@@ -211,7 +326,7 @@ export async function fetchAvailableModels() {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-                    const chatResponse = await fetch(`http://${ip}:${port}/v1/chat/completions`, {
+                    const chatResponse = await fetch(getServerUrl('/v1/chat/completions'), {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -424,25 +539,15 @@ export function hideLoadedModelDisplay(saveState = true) {
  */
 export async function isServerRunning() {
     try {
-        if (!serverIpInput || !serverPortInput) {
-            console.error('Server IP or port input elements not found');
-            return false;
-        }
-
-        const ip = serverIpInput.value.trim();
-        const port = serverPortInput.value.trim();
-
-        if (!ip || !port) {
-            console.error('Server IP or port is empty');
-            return false;
-        }
+        // Use the shared URL builder for the models endpoint
+        const modelsUrl = getServerUrl('/v1/models');
 
         // Add a timeout to the fetch request to prevent long waits
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
         try {
-            const response = await fetch(`http://${ip}:${port}/v1/models`, {
+            const response = await fetch(modelsUrl, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -493,7 +598,7 @@ async function tryEndpoints(ip, port, operation, endpoints, requestData = null) 
                 options.body = JSON.stringify(requestData || {});
             }
 
-            const response = await fetch(`http://${ip}:${port}${endpoint.path}`, options)
+            const response = await fetch(getServerUrl(endpoint.path), options)
                 .catch(err => {
                     console.log(`Network error with ${endpoint.path}: ${err.name === 'AbortError' ? 'timeout' : 'connection failed'}`);
                     return { ok: false };
@@ -531,7 +636,7 @@ async function waitForModelLoad(ip, port, modelId, maxAttempts = 10) {
             console.log(`Checking if model is loaded (attempt ${attempt + 1}/${maxAttempts})...`);
 
             // Make a simple test completion to see if the model responds
-            const testResponse = await fetch(`http://${ip}:${port}/v1/chat/completions`, {
+            const testResponse = await fetch(getServerUrl('/v1/chat/completions'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -584,7 +689,7 @@ async function forceLoadModel(ip, port, modelId) {
 
         // Make a special completion request that forces model loading
         // The long prompt forces LM Studio to fully load the model
-        const response = await fetch(`http://${ip}:${port}/v1/chat/completions`, {
+    const response = await fetch(getServerUrl('/v1/chat/completions'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -729,7 +834,7 @@ export async function ejectModel() {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-                const modelsResponse = await fetch(`http://${ip}:${port}/v1/models`, {
+                const modelsResponse = await fetch(getServerUrl('/v1/models'), {
                     signal: controller.signal
                 }).catch(() => {
                     return { ok: false };
@@ -824,7 +929,7 @@ export function getApiUrl() {
         const port = serverPortInput.value.trim();
 
         if (ip && port) {
-            API_URL = `http://${ip}:${port}/v1/chat/completions`;
+            API_URL = getServerUrl('/v1/chat/completions');
             console.log('API URL was not set, creating from inputs:', API_URL);
         }
     }
@@ -853,7 +958,7 @@ export function loadServerSettings() {
         if (savedPort) serverPortInput.value = savedPort;
 
         if (savedIp && savedPort) {
-            API_URL = `http://${savedIp}:${savedPort}/v1/chat/completions`;
+            API_URL = getServerUrl('/v1/chat/completions');
             // Fetch models after setting the API URL, but set a flag to indicate this is the initial load
             window.isInitialStartup = true;
             setTimeout(() => fetchAvailableModels(), 500);

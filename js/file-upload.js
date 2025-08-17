@@ -25,8 +25,9 @@ export async function isVisionModel() {
         }
         
         // Get server connection details
-        const serverIp = document.getElementById('server-ip')?.value?.trim() || 'localhost';
-        const serverPort = document.getElementById('server-port')?.value?.trim() || '1234';
+    // Use getServerUrl for endpoint construction
+    // (serverIp/serverPort still used for fallback logic if needed)
+    const getServerUrl = window.getServerUrl || (await import('./api-service.js')).getServerUrl;
         
         if (!serverIp || !serverPort) {
             console.log('Server connection not configured, falling back to name-based detection');
@@ -39,7 +40,7 @@ export async function isVisionModel() {
         
         // Method 1: Check model details from /v1/models endpoint
         try {
-            const modelsResponse = await fetch(`http://${serverIp}:${serverPort}/v1/models`, {
+            const modelsResponse = await fetch(getServerUrl('/v1/models'), {
                 method: 'GET',
                 signal: AbortSignal.timeout(3000) // 3 second timeout
             });
@@ -86,7 +87,7 @@ export async function isVisionModel() {
 
             for (const endpoint of infoEndpoints) {
                 try {
-                    const infoResponse = await fetch(`http://${serverIp}:${serverPort}${endpoint}`, {
+                    const infoResponse = await fetch(getServerUrl(endpoint), {
                         method: 'GET',
                         signal: AbortSignal.timeout(2000)
                     });
@@ -275,7 +276,7 @@ async function testVisionCapability(serverIp, serverPort, modelId) {
 
         console.log('Testing vision capability with minimal image request...');
         
-        const response = await fetch(`http://${serverIp}:${serverPort}/v1/chat/completions`, {
+    const response = await fetch(getServerUrl('/v1/chat/completions'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

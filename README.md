@@ -13,12 +13,22 @@
 </p>
 
 ## 🆕 What's New
-🎉 **Latest Update: Version 7.0** - Now Available!
+🎉 **Latest Update: Version 7.1** - August 2025
 
-### New Features & Improvements
-- **Performance Optimization**: The app has been fully optimized to run better on more devices with improved performance, reduced memory usage, and enhanced stability across different hardware configurations
-- **System Prompts Feature**: The character feature has been replaced with the ability to save system prompts, providing a more flexible and powerful way to customize your AI interactions. You can now create, save, and manage multiple system prompts for different use cases
-- **Enhanced Compatibility**: Improved device compatibility and performance optimizations for a smoother experience across various Android devices
+### Changelog
+#### Major Changes
+- **Refactored All API Calls:** All API requests now use a shared `getServerUrl` function, ensuring correct protocol (HTTP/HTTPS) and port logic. This enables secure WAN access and resolves CORS/preflight redirect errors.
+- **Server Connection UI Improvements:** 
+  - Added support for domain names and IP addresses.
+  - SSL switch now defaults to port 443 for HTTPS and omits the port for standard protocols.
+  - Port field shows default value in grey if not set.
+- **Test Server Response Button:** Added a button in the settings page to test server connectivity and display server status.
+- **Dynamic Port Handling:** Port is omitted for standard protocols (80 for HTTP, 443 for HTTPS) to prevent browser redirect issues.
+- **Codebase Cleanup:** Removed all hardcoded `http://` and `:443` usages from API calls in all JS files.
+
+#### Bug Fixes
+- **CORS & Preflight Redirects:** Fixed persistent CORS errors by ensuring all requests use the correct protocol and port logic.
+- **Android Build Parity:** Synced all Cordova/Android build JS files with main codebase changes.
 
 ### Previous Updates
 - **Version 6.5**: Added scroll to bottom icon, improved welcome screen behavior, and comprehensive performance improvements
@@ -122,7 +132,120 @@ LMSA connects to LM Studio running on your computer, allowing you to:
 4. Open the app and enter the server IP and port in Settings
 5. Begin chatting immediately!
 
+## Installation
+---
+
+## 🛠️ Building the APK & Setting Up Nginx on Ubuntu
+
+## 🛠️ Building the LMSA APK on Ubuntu
+---
+
+## 🖥️ Running LMSA Locally in Your Browser
+
+You can run LMSA as a web app for local testing and development:
+
+### Prerequisites
+- Node.js and npm installed
+
+### Steps
+1. Open a terminal in the LMSA project directory.
+2. Install a simple static server (if you don't have it):
+  ```bash
+  npm install -g serve
+  ```
+3. Start the server:
+  ```bash
+  npx serve .
+  ```
+4. Open your browser and go to:
+  ```
+  http://localhost:3000/index.html
+  ```
+
+You can now use LMSA directly in your browser. Make sure your LM Studio server is running and configured for local access.
+
+---
+
+### Prerequisites
+
+Install Cordova and Android build tools:
+```bash
+sudo apt update
+sudo apt install nodejs npm openjdk-11-jdk android-sdk adb
+sudo npm install -g cordova
+```
+
+### Building the APK
+
+1. Clone the repository:
+  ```bash
+  git clone https://github.com/peterrhone/LMSA.git
+  cd LMSA
+  ```
+2. Create the Cordova project:
+  ```bash
+  npx cordova create lmsa-android com.example.lmsa LMSA
+  cd lmsa-android
+  ```
+3. Build the APK:
+  ```bash
+  npx cordova build android
+  ```
+4. Install the APK on your device:
+  ```bash
+  adb install ./platforms/android/app/build/outputs/apk/debug/app-debug.apk
+  ```
+
+### Notes
+- Make sure you have Android Studio or the Android SDK installed and configured.
+- You may need to set up your device for USB debugging.
+
+---
+1. Clone the repository
+2. npx cordova create lmsa-android com.example.lmsa LMSA
+3. cd lmsa-android
+4. npx cordova build android
+5. copy the resulting apk from ./lmsa-android/platforms/android/app/build/outputs/apk/ to your phone with adb install
+
 ## 📥 Download Information
+---
+
+## 🌐 Remote Access & Nginx Configuration
+
+To enable secure remote access and resolve CORS issues, use the following Nginx config (requires the [ngx_headers_more](https://github.com/openresty/headers-more-nginx-module) module):
+
+```nginx
+server {
+  listen 443 ssl;
+  server_name your.domain.com;
+
+  ssl_certificate /etc/nginx/ssl/your.domain.com.crt;
+  ssl_certificate_key /etc/nginx/ssl/your.domain.com.key;
+
+  location / {
+    proxy_pass http://localhost:1234;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # Robust CORS headers for all requests
+    more_set_headers 'Access-Control-Allow-Origin: *';
+    more_set_headers 'Access-Control-Allow-Methods: GET, POST, OPTIONS';
+    more_set_headers 'Access-Control-Allow-Headers: Authorization,Content-Type,Origin,Accept';
+
+    # Handle preflight OPTIONS requests
+    if ($request_method = 'OPTIONS') {
+      more_set_headers 'Access-Control-Max-Age: 1728000';
+      more_set_headers 'Content-Type: text/plain charset=UTF-8';
+      more_set_headers 'Content-Length: 0';
+      return 204;
+    }
+  }
+}
+```
+
+---
 
 ### Recommended: Google Play Release
 **LMSA - Google Play**<br>

@@ -142,20 +142,24 @@ async function loadModelInformation() {
             return;
         }
 
-        // Fetch all models from the server
-        const serverIp = document.getElementById('server-ip')?.value.trim() || '';
-        const serverPort = document.getElementById('server-port')?.value.trim() || '';
-
-        // Store current server info for API calls
-        currentServerIp = serverIp;
-        currentServerPort = serverPort;
-
-        if (!serverIp || !serverPort) {
-            displayServerError();
-            // Restore the original flag value
-            window.isInitialStartup = originalStartupFlag;
-            return;
-        }
+        // Use getServerUrl from api-service.js for consistent server URL logic
+        import('./api-service.js').then(api => {
+            const serverUrl = api.getServerUrl();
+            try {
+                const urlObj = new URL(serverUrl);
+                currentServerIp = urlObj.hostname;
+                currentServerPort = urlObj.port;
+                if (!currentServerIp || !currentServerPort) {
+                    displayServerError();
+                    window.isInitialStartup = originalStartupFlag;
+                    return;
+                }
+            } catch (e) {
+                displayServerError();
+                window.isInitialStartup = originalStartupFlag;
+                return;
+            }
+        });
 
         // Fetch model info
         try {
