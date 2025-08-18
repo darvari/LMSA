@@ -13,27 +13,17 @@
 </p>
 
 ## 🆕 What's New
-🎉 **Latest Update: Version 7.1** - Now Available!
+🎉 **Latest Update: Version 7.1** - August 2025
 
 ### New Features & Improvements
 - **Settings Menu Fix**: Fixed an issue where the settings menu wasn't positioning itself correctly on some devices, ensuring consistent user experience across all device types
-
-<<<<<<< Updated upstream
-## 🆕 ## Changes from Origin
-
-### New Features & Improvements
 - **Performance Optimization**: The app has been fully optimized to run better on more devices with improved performance, reduced memory usage, and enhanced stability across different hardware configurations
 - **System Prompts Feature**: The character feature has been replaced with the ability to save system prompts, providing a more flexible and powerful way to customize your AI interactions. You can now create, save, and manage multiple system prompts for different use cases
 - **Enhanced Compatibility**: Improved device compatibility and performance optimizations for a smoother experience across various Android devices
-=======
-#### Bug Fixes
+
+### Bug Fixes
 - **CORS & Preflight Redirects:** Fixed persistent CORS errors by ensuring all requests use the correct protocol and port logic.
 - **Android Build Parity:** Synced all Capacitor/Android build JS files with main codebase changes.
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-- **Android Build Parity:** Synced all Capacitor/Android build JS files with main codebase changes.
-=======
->>>>>>> Stashed changes
 
 ### Previous Updates
 - **Version 7.0**: Performance optimization, system prompts feature, and enhanced compatibility
@@ -175,10 +165,6 @@ You can now use LMSA directly in your browser. Make sure your LM Studio server i
 ### Prerequisites
 
 Install Capacitor and Android build tools:
-<<<<<<< Updated upstream
-Install Capacitor and Android build tools:
-=======
->>>>>>> Stashed changes
 ```bash
 sudo apt update
 sudo apt install nodejs npm openjdk-11-jdk android-sdk adb
@@ -200,7 +186,6 @@ npm install @capacitor/core @capacitor/cli @capacitor/android
   cp -r index.html css js icon.png www/
   ```
 3. Add the Android platform:
-<<<<<<< Updated upstream
 2. Create or update the Capacitor project:
   ```bash
   npm init -y
@@ -215,27 +200,9 @@ npm install @capacitor/core @capacitor/cli @capacitor/android
   # Edit android/variables.gradle to set minSdkVersion = 26
   # Edit capacitor.config.json to add Android configuration
   npx cap sync
-  npx cap add android
-  # For Android 8 compatibility:
-  # Edit android/variables.gradle to set minSdkVersion = 26
-  # Edit capacitor.config.json to add Android configuration
-  npx cap sync
-  ```
-4. Open in Android Studio and build:
-4. Open in Android Studio and build:
-  ```bash
-  npx cap open android
-=======
-  ```bash
-  npx cap add android
-  # For Android 8 compatibility:
-  # Edit android/variables.gradle to set minSdkVersion = 26
-  # Edit capacitor.config.json to add Android configuration
-  npx cap sync
   ```
 4. Open in Android Studio and build:
   ```bash
->>>>>>> Stashed changes
   npx cap open android
   ```
 5. In Android Studio:
@@ -243,27 +210,12 @@ npm install @capacitor/core @capacitor/cli @capacitor/android
    - Find the APK in `android/app/build/outputs/apk/debug/app-debug.apk`
 
 6. Install the APK on your device:
-<<<<<<< Updated upstream
-5. In Android Studio:
-   - Click "Build" → "Build Bundle(s) / APK(s)" → "Build APK(s)"
-   - Find the APK in `android/app/build/outputs/apk/debug/app-debug.apk`
-
-6. Install the APK on your device:
   ```bash
   adb install ./android/app/build/outputs/apk/debug/app-debug.apk
-  adb install ./android/app/build/outputs/apk/debug/app-debug.apk
-=======
-  ```bash
-  adb install ./android/app/build/outputs/apk/debug/app-debug.apk
->>>>>>> Stashed changes
   ```
 
 ### Notes
 - Make sure you have Android Studio installed and configured.
-<<<<<<< Updated upstream
-- Make sure you have Android Studio installed and configured.
-=======
->>>>>>> Stashed changes
 - You may need to set up your device for USB debugging.
 
 ---
@@ -276,17 +228,6 @@ npm install @capacitor/core @capacitor/cli @capacitor/android
 7. npx cap open android
 8. Build the APK in Android Studio
 9. Install the resulting APK from ./android/app/build/outputs/apk/debug/app-debug.apk to your phone with adb install
-<<<<<<< Updated upstream
-2. npm install @capacitor/core @capacitor/cli @capacitor/android
-3. npx cap init LMSA com.example.lmsa --web-dir www
-4. Copy web files to www directory (cp -r index.html css js icon.png www/)
-5. npx cap add android
-6. npx cap sync
-7. npx cap open android
-8. Build the APK in Android Studio
-9. Install the resulting APK from ./android/app/build/outputs/apk/debug/app-debug.apk to your phone with adb install
-=======
->>>>>>> Stashed changes
 
 ## 📥 Download Information
 ---
