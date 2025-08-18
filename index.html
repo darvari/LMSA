@@ -2104,7 +2104,7 @@
                             if (previewToggle.offsetParent === null) {
                                 // Element is still not visible, try more aggressive approach
                                 previewToggle.setAttribute('style', 'display: block !important; visibility: visible !important; opacity: 1 !important;');
-                                console.log('Applied emergency visibility fix to tablet view button');
+                ;
                             }
                         }, 100);
 
@@ -2161,7 +2161,6 @@
                     // Debounce resize events to avoid excessive calls
                     clearTimeout(resizeTimeout);
                     resizeTimeout = setTimeout(function() {
-                        console.log('Window resized, updating view mode...');
                         updateViewMode();
                     }, 250);
                 });
@@ -2170,7 +2169,6 @@
                 window.addEventListener('orientationchange', function() {
                     // Small delay to ensure dimensions are updated after orientation change
                     setTimeout(function() {
-                        console.log('Orientation changed, updating view mode...');
                         updateViewMode();
                     }, 300);
                 });

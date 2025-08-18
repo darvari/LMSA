@@ -15,12 +15,9 @@ let processingFiles = new Map(); // Track files being processed to avoid memory 
  */
 export async function isVisionModel() {
     try {
-        console.log('isVisionModel() called');
-        console.log('window.currentLoadedModel:', window.currentLoadedModel);
         
         // Check if there's a currently loaded model
         if (!window.currentLoadedModel) {
-            console.log('No currentLoadedModel, returning false');
             return false;
         }
         
@@ -29,13 +26,11 @@ export async function isVisionModel() {
         const serverPort = document.getElementById('server-port')?.value?.trim() || '1234';
         
         if (!serverIp || !serverPort) {
-            console.log('Server connection not configured, falling back to name-based detection');
             return fallbackNameBasedDetection();
         }
 
         // Try to get model information from various LM Studio endpoints
         const modelId = window.currentLoadedModel;
-        console.log('Checking vision capabilities for model:', modelId);
         
         // Method 1: Check model details from /v1/models endpoint
         try {
@@ -46,34 +41,28 @@ export async function isVisionModel() {
 
             if (modelsResponse.ok) {
                 const modelsData = await modelsResponse.json();
-                console.log('Models API response:', modelsData);
                 
                 if (modelsData.data && Array.isArray(modelsData.data)) {
                     const currentModel = modelsData.data.find(model => model.id === modelId);
                     if (currentModel) {
-                        console.log('Found current model data:', currentModel);
                         
                         // Check for vision capabilities in model metadata
                         if (hasVisionCapabilities(currentModel)) {
-                            console.log('Vision capabilities detected through model metadata');
                             return true;
                         }
                     }
                 }
             }
         } catch (error) {
-            console.log('Models endpoint check failed:', error.message);
         }
 
         // Method 2: Test vision capability with a small image request
         try {
-            console.log('Testing vision capability with test request...');
             const visionTestResult = await testVisionCapability(serverIp, serverPort, modelId);
             if (visionTestResult !== null) {
                 return visionTestResult;
             }
         } catch (error) {
-            console.log('Vision capability test failed:', error.message);
         }
 
         // Method 3: Check model info through additional endpoints
@@ -93,10 +82,8 @@ export async function isVisionModel() {
 
                     if (infoResponse.ok) {
                         const infoData = await infoResponse.json();
-                        console.log(`Model info from ${endpoint}:`, infoData);
                         
                         if (hasVisionCapabilities(infoData)) {
-                            console.log('Vision capabilities detected through info endpoint');
                             return true;
                         }
                     }
@@ -105,11 +92,9 @@ export async function isVisionModel() {
                 }
             }
         } catch (error) {
-            console.log('Info endpoints check failed:', error.message);
         }
 
         // Method 4: Fallback to name-based detection
-        console.log('All API checks failed, using fallback name-based detection');
         return fallbackNameBasedDetection();
         
     } catch (error) {
@@ -125,12 +110,10 @@ export async function isVisionModel() {
  */
 function fallbackNameBasedDetection() {
     if (!window.currentLoadedModel) {
-        console.log('No currentLoadedModel found');
         return false;
     }
     
     const modelName = window.currentLoadedModel.toLowerCase();
-    console.log('Using fallback name-based detection for:', modelName);
     
     // Check if the model name contains vision indicators
     const visionIndicators = [
@@ -141,19 +124,14 @@ function fallbackNameBasedDetection() {
         'internvl', 'cogvlm', 'blip', 'flamingo'
     ];
     
-    console.log('Checking vision indicators:', visionIndicators);
-    console.log('Model name to check:', modelName);
     
     // Check each indicator individually for debugging
     const matches = visionIndicators.filter(indicator => {
         const matches = modelName.includes(indicator);
-        console.log(`Checking "${indicator}": ${matches}`);
         return matches;
     });
     
     const hasVisionKeyword = matches.length > 0;
-    console.log('Matching indicators:', matches);
-    console.log('Name-based detection result:', hasVisionKeyword);
     return hasVisionKeyword;
 }
 
@@ -273,7 +251,6 @@ async function testVisionCapability(serverIp, serverPort, modelId) {
             stream: false
         };
 
-        console.log('Testing vision capability with minimal image request...');
         
         const response = await fetch(`http://${serverIp}:${serverPort}/v1/chat/completions`, {
             method: 'POST',
@@ -285,11 +262,9 @@ async function testVisionCapability(serverIp, serverPort, modelId) {
         });
 
         if (response.ok) {
-            console.log('Vision capability test successful - model accepts image input');
             return true;
         } else {
             const errorText = await response.text().catch(() => '');
-            console.log('Vision capability test response:', response.status, errorText);
             
             // If the error suggests the model doesn't support images, it's not a vision model
             if (errorText.toLowerCase().includes('image') || 
@@ -302,7 +277,6 @@ async function testVisionCapability(serverIp, serverPort, modelId) {
             return null;
         }
     } catch (error) {
-        console.log('Vision capability test error:', error.message);
         return null;
     }
 }
@@ -372,18 +346,15 @@ async function getAllowedMimeTypes() {
  */
 async function updateFileInputAccept() {
     if (!localFileInput) {
-        console.log('updateFileInputAccept: localFileInput is null');
         return;
     }
     
     // Always allow all file types - no restrictions
     localFileInput.removeAttribute('accept');
-    console.log('File input set to accept all file types');
     
     // Verify the accept attribute was removed
     setTimeout(() => {
         const actualAccept = document.getElementById('file-upload-input')?.accept;
-        console.log('Verified accept attribute after timeout:', actualAccept || 'none (all files allowed)');
     }, 100);
 }
 
@@ -434,7 +405,6 @@ export function initializeFileUpload() {
     // resetUploadedFiles();
     
     // Update file input accept attribute based on current model
-    console.log('About to call updateFileInputAccept from initializeFileUpload');
     updateFileInputAccept();
     
     // Add event listener to the paperclip button
@@ -519,7 +489,6 @@ async function extractDocxText(input) {
     try {
         // If input is an object with content property (from chat history), use it directly
         if (input && typeof input === 'object' && input.content && typeof input.content === 'string') {
-            console.log(`File ${input.name} already has content as string, using directly`);
             return input.content;
         }
         
@@ -533,7 +502,6 @@ async function extractDocxText(input) {
         // Convert File to ArrayBuffer if needed
         let arrayBuffer;
         if (input instanceof File) {
-            console.log(`Converting File ${input.name} to ArrayBuffer for DOCX processing`);
             arrayBuffer = await readFileAsArrayBuffer(input);
         } else {
             // Assume it's already an ArrayBuffer
@@ -568,7 +536,6 @@ async function extractDocxText(input) {
                 .join(' ');
         }
         
-        console.log(`Successfully extracted DOCX content, length: ${textContent.length} characters`);
         return textContent || 'No text content could be extracted from DOCX file.';
     } catch (error) {
         console.error('Error extracting DOCX content:', error);
@@ -587,7 +554,6 @@ async function loadJSZip() {
         
         // Use the lazy loader from index.html
         if (typeof window.loadJSZipLibrary === 'function') {
-            console.log('Loading JSZip library...');
             return await window.loadJSZipLibrary();
         }
         
@@ -603,18 +569,15 @@ async function loadJSZip() {
  */
 async function loadPDFJS() {
     return new Promise((resolve, reject) => {
-        console.log('loadPDFJS called - checking PDF.js availability...');
         
         // Check if PDF.js is already loaded
         if (window.pdfjsLib) {
-            console.log('PDF.js already available as pdfjsLib');
             resolve(window.pdfjsLib);
             return;
         }
         
         // Check alternative global variable names
         if (window.PDFJS) {
-            console.log('PDF.js already available as PDFJS, setting up pdfjsLib alias');
             window.pdfjsLib = window.PDFJS;
             resolve(window.PDFJS);
             return;
@@ -622,18 +585,15 @@ async function loadPDFJS() {
         
         // Check if we're already in the process of loading PDF.js
         if (window._loadingPDFJS) {
-            console.log('PDF.js already being loaded, waiting for completion...');
             window._loadingPDFJS.then(resolve).catch(reject);
             return;
         }
         
-        console.log('PDF.js not available, starting load process...');
         
         // Create a promise to track the loading process
         window._loadingPDFJS = new Promise((loadResolve, loadReject) => {
             // Use the HTML lazy loader
             if (typeof window.loadPDFLibrary === 'function') {
-                console.log('Using HTML loadPDFLibrary function...');
                 window.loadPDFLibrary()
                     .then(() => {
                         console.log('HTML loadPDFLibrary resolved, checking for PDF.js...');
@@ -786,7 +746,6 @@ async function extractPdfText(input) {
     try {
         // If input is an object with content property (from chat history), use it directly
         if (input && typeof input === 'object' && input.content && typeof input.content === 'string') {
-            console.log(`File ${input.name} already has content as string, using directly`);
             return input.content;
         }
         

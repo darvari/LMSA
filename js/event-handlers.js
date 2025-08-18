@@ -424,13 +424,11 @@ export function initializeEventHandlers() {
         // Prevent rapid-fire touch events
         const now = Date.now();
         if (now - lastTouchTime < 100) {
-            console.log('Touch event ignored - too rapid');
             return;
         }
         lastTouchTime = now;
         
         // Debug logging
-        console.log('Touch end detected:', e);
         
         // Only process if this is a simple tap (not scrolling or other complex gestures)
         if (e.changedTouches && e.changedTouches.length === 1) {
@@ -449,7 +447,6 @@ export function initializeEventHandlers() {
                 elementAtTouch.closest('.menu-item') !== null ||
                 elementAtTouch.closest('#chat-history') !== null ||
                 elementAtTouch.closest('#sidebar') !== null)) {
-                console.log('Touch on interactive element - skipping sidebar outside click logic');
                 return;
             }
 
