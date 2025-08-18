@@ -13,14 +13,13 @@
 </p>
 
 ## 🆕 What's New
-🎉 **Latest Update: Version 7.0** - Now Available!
+🎉 **Latest Update: Version 7.1** - Now Available!
 
 ### New Features & Improvements
-- **Performance Optimization**: The app has been fully optimized to run better on more devices with improved performance, reduced memory usage, and enhanced stability across different hardware configurations
-- **System Prompts Feature**: The character feature has been replaced with the ability to save system prompts, providing a more flexible and powerful way to customize your AI interactions. You can now create, save, and manage multiple system prompts for different use cases
-- **Enhanced Compatibility**: Improved device compatibility and performance optimizations for a smoother experience across various Android devices
+- **Settings Menu Fix**: Fixed an issue where the settings menu wasn't positioning itself correctly on some devices, ensuring consistent user experience across all device types
 
 ### Previous Updates
+- **Version 7.0**: Performance optimization, system prompts feature, and enhanced compatibility
 - **Version 6.5**: Added scroll to bottom icon, improved welcome screen behavior, and comprehensive performance improvements
 - **Version 5.5**: Added full Vision Language Model (VLM) support for image upload and analysis, enabling multimodal conversations with AI models
 - **Bug Fixes**: Resolved keyboard overlap issues, fixed PDF file attachments, and disabled auto-scroll feature for better chat experience
