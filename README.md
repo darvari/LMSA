@@ -25,6 +25,26 @@
 - **CORS & Preflight Redirects:** Fixed persistent CORS errors by ensuring all requests use the correct protocol and port logic.
 - **Android Build Parity:** Synced all Capacitor/Android build JS files with main codebase changes.
 
+## 🔀 Changes in This Fork
+
+This fork includes significant improvements to enable secure remote access to LM Studio servers:
+
+### Server Connection Enhancements
+- **Smart URL Construction**: Completely refactored API calls to use a centralized `getServerUrl()` function, ensuring consistent protocol and port handling across all requests
+- **Domain Name Support**: Added support for domain names in addition to IP addresses
+- **Automatic Protocol Detection**: The app now detects if a URL includes protocols (http/https) and adjusts settings accordingly
+- **Smart Port Handling**: 
+  - Ports are omitted for standard protocols (port 80 for HTTP, port 443 for HTTPS) to prevent browser redirect issues
+  - Default port 443 is automatically used when SSL is enabled
+  - Default port 1234 is used for non-SSL connections if no port is specified
+- **Enhanced Security**: Non-local domains (anything not matching localhost/127.0.0.1/10.x.x.x/192.168.x.x/172.16-31.x.x) automatically use HTTPS for improved security
+- **Server Response Testing**: Added a Test Server Response button to verify connectivity and display server status before attempting to chat
+
+### Mobile UI Improvements
+- **Field Validation**: Domain name input field has autocorrect and spellcheck disabled for more accurate entry
+- **Visual Feedback**: Port field shows default values in grey when not explicitly set
+- **Error Handling**: Improved error messages for connection issues, specifically addressing CORS and preflight redirect problems
+
 ### Previous Updates
 - **Version 7.0**: Performance optimization, system prompts feature, and enhanced compatibility
 - **Version 6.5**: Added scroll to bottom icon, improved welcome screen behavior, and comprehensive performance improvements
