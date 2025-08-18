@@ -58,18 +58,34 @@ function closeSidebar() {
 
 // Close About modal button handler
 if (closeAboutButton) {
-    closeAboutButton.addEventListener('click', () => {
+    const handleClose = () => {
         if (aboutModal) {
-            modalContent.classList.add('animate-modal-out');
-            setTimeout(() => {
-                aboutModal.classList.add('hidden');
-                modalContent.classList.remove('animate-modal-out');
+            if (modalContent) {
+                modalContent.classList.add('animate-modal-out');
+                setTimeout(() => {
+                    aboutModal.classList.add('hidden');
+                    modalContent.classList.remove('animate-modal-out');
 
-                // Check if welcome message should be shown
+                    // Check if welcome message should be shown
+                    checkAndShowWelcomeMessage();
+                }, 300);
+            } else {
+                // Fallback if modalContent is null
+                aboutModal.classList.add('hidden');
                 checkAndShowWelcomeMessage();
-            }, 300);
+            }
         }
-    });
+    };
+
+    // Add click event listener
+    closeAboutButton.addEventListener('click', handleClose);
+    
+    // Add touch event listener for better mobile experience
+    closeAboutButton.addEventListener('touchend', (e) => {
+        e.preventDefault(); // Prevent default behavior
+        e.stopPropagation(); // Stop event bubbling
+        handleClose();
+    }, { passive: false });
 }
 
 // Open help link click handler
