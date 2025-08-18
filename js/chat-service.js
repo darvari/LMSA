@@ -3,7 +3,7 @@ import { messagesContainer, userInput, loadedModelDisplay } from './dom-elements
 import { appendMessage, showLoadingIndicator, hideLoadingIndicator, toggleSendStopButton, hideWelcomeMessage, showWelcomeMessage, toggleSidebar, showConfirmationModal, hideConfirmationModal, updateChatHistoryScroll } from './ui-manager.js';
 import { getApiUrl, getAvailableModels, isServerRunning, fetchAvailableModels } from './api-service.js';
 import { getSystemPrompt, getTemperature, isSystemPromptSet, getAutoGenerateTitles, isUserCreatedPrompt, getHideThinking, getReasoningTimeout } from './settings-manager.js';
-import { sanitizeInput, basicSanitizeInput, initializeCodeMirror, scrollToBottom, handleScroll, debugLog, debugError, filterToEnglishCharacters, processCodeBlocks, decodeHtmlEntities, refreshAllCodeBlocks, containsCodeBlocks, containsCodeBlocksOutsideThinkTags, saveCurrentChatBeforeRefresh, removeThinkTags } from './utils.js';
+import { sanitizeInput, basicSanitizeInput, initializeCodeMirror, scrollToBottom, handleScroll, debugLog, debugError, filterToEnglishCharacters, processCodeBlocks, decodeHtmlEntities, refreshAllCodeBlocks, containsCodeBlocks, containsCodeBlocksOutsideThinkTags, saveCurrentChatBeforeRefresh, removeThinkTags, hideScrollToBottomButton } from './utils.js';
 import { setActionToPerform } from './shared-state.js';
 
 let currentChatId = Date.now();
@@ -1390,6 +1390,9 @@ export function loadChat(id, isFirstMessageReload = false) {
     // This prevents the welcome screen from showing through during the transition
     hideWelcomeMessage();
 
+    // Hide the scroll-to-bottom button when switching chats
+    hideScrollToBottomButton();
+
     // Check if the system prompt was user-created
     const isUserCreated = isUserCreatedPrompt();
     const savedPrompt = localStorage.getItem('systemPrompt');
@@ -1580,6 +1583,9 @@ export function clearAllChats() {
     chatHistoryData = {};
     updateChatHistoryUI();
 
+    // Hide the scroll-to-bottom button when clearing all chats
+    hideScrollToBottomButton();
+
     // Check if the system prompt was user-created before clearing the active character
     const isUserCreated = isUserCreatedPrompt();
     const savedPrompt = localStorage.getItem('systemPrompt');
@@ -1684,6 +1690,9 @@ export function createNewChat() {
     // Clear the messages container and show the welcome message
     messagesContainer.innerHTML = '';
     showWelcomeMessage();
+
+    // Hide the scroll-to-bottom button when starting a new chat
+    hideScrollToBottomButton();
 
     // Update UI
     updateChatHistoryUI();
