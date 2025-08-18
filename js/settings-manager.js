@@ -23,7 +23,29 @@ export function initializeTemperature() {
     const temperatureLock = document.getElementById('temperature-lock');
 
     if (temperatureInput && temperatureValue && temperatureLock) {
-        temperatureInput.addEventListener('input', () => {
+        // Add comprehensive event prevention for disabled state
+        const preventInteractionWhenDisabled = (e) => {
+            if (temperatureInput.disabled) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return false;
+            }
+        };
+
+        // Block all interaction events when disabled
+        ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend', 'touchmove', 'keydown', 'keyup', 'focus'].forEach(eventType => {
+            temperatureInput.addEventListener(eventType, preventInteractionWhenDisabled, { capture: true, passive: false });
+        });
+
+        temperatureInput.addEventListener('input', (e) => {
+            // Prevent processing input events when slider is disabled
+            if (temperatureInput.disabled) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+
             const inputValue = temperatureInput.value;
             const parsedValue = parseFloat(inputValue);
 
@@ -37,23 +59,48 @@ export function initializeTemperature() {
         });
 
         temperatureLock.addEventListener('click', () => {
-            const isLocked = temperatureInput.disabled;
-            temperatureInput.disabled = !isLocked;
-
-            if (isLocked) {
-                // Changing to unlocked state
+            const isCurrentlyLocked = temperatureInput.disabled;
+            
+            if (isCurrentlyLocked) {
+                // Currently locked (red), clicking to unlock (green)
+                temperatureInput.disabled = false;
                 temperatureLock.innerHTML = '<i class="fas fa-unlock text-green-400"></i>';
                 temperatureLock.title = 'Temperature is unlocked (click to lock)';
+                // Force style update for unlocked state
+                temperatureInput.style.pointerEvents = 'auto';
+                temperatureInput.style.cursor = 'pointer';
+                temperatureInput.style.opacity = '';
+                temperatureInput.style.background = '';
             } else {
-                // Changing to locked state
+                // Currently unlocked (green), clicking to lock (red)
+                temperatureInput.disabled = true;
                 temperatureLock.innerHTML = '<i class="fas fa-lock text-red-400"></i>';
                 temperatureLock.title = 'Temperature is locked (click to unlock)';
+                // Force style update for locked state
+                temperatureInput.style.pointerEvents = 'none';
+                temperatureInput.style.cursor = 'not-allowed';
+                temperatureInput.style.opacity = '0.6';
+                temperatureInput.style.background = '#6b7280';
             }
+            
+            // Force a repaint to ensure styles are applied
+            temperatureInput.offsetHeight;
         });
 
-        // Initialize lock button state (since temperature input is disabled by default)
-        temperatureLock.innerHTML = '<i class="fas fa-lock text-red-400"></i>';
-        temperatureLock.title = 'Temperature is locked (click to unlock)';
+        // Initialize lock button state and ensure slider is properly disabled
+        // Use setTimeout to ensure DOM and CSS are fully loaded
+        setTimeout(() => {
+            temperatureInput.disabled = true; // Explicitly set disabled state
+            temperatureInput.style.pointerEvents = 'none'; // Force disable interactions
+            temperatureInput.style.cursor = 'not-allowed'; // Visual feedback
+            temperatureInput.style.opacity = '0.6'; // Force visual disabled state
+            temperatureInput.style.background = '#6b7280'; // Force disabled background
+            temperatureLock.innerHTML = '<i class="fas fa-lock text-red-400"></i>';
+            temperatureLock.title = 'Temperature is locked (click to unlock)';
+            
+            // Force a repaint
+            temperatureInput.offsetHeight;
+        }, 0);
 
         // Load saved temperature
         const savedTemperature = localStorage.getItem('temperature');

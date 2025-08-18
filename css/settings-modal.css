@@ -1039,6 +1039,38 @@
     text-align: center;
 }
 
+/* Disabled state for temperature slider */
+#settings-modal input[type="range"]:disabled {
+    background: #6b7280 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+    pointer-events: none !important;
+}
+
+#settings-modal input[type="range"]:disabled::-webkit-slider-thumb {
+    background: #9ca3af !important;
+    border-color: #6b7280 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+#settings-modal input[type="range"]:disabled::-webkit-slider-thumb:hover {
+    transform: none !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+#settings-modal input[type="range"]:disabled::-moz-range-thumb {
+    background: #9ca3af !important;
+    border-color: #6b7280 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+#settings-modal input[type="range"]:disabled::-moz-range-thumb:hover {
+    transform: none !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
 /* Settings content wrapper */
 #settings-content-wrapper {
     overflow-y: auto;
