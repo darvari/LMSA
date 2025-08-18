@@ -641,9 +641,9 @@ body.light-theme #active-character-display {
 }
 
 #user-input {
-  border-radius: 1.5rem 0 0 1.5rem;
-  /* Left side rounded to blend with send button */
-  padding: 0.875rem 3rem 0.875rem 1.25rem;
+  border-radius: 0.75rem 0 0 0.75rem;
+  /* Smaller left radius to utilize more space */
+  padding: 0.875rem 3rem 0.875rem 0.75rem;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border: 2px solid rgba(255, 255, 255, 0.1);
   border-right: none;
@@ -694,8 +694,8 @@ body.light-theme #active-character-display {
 
 @media (max-width: 768px) {
   #user-input {
-    border-radius: 1.5rem 0 0 1.5rem;
-    /* Consistent rounded left side */
+    border-radius: 0.75rem 0 0 0.75rem;
+    /* Consistent smaller rounded left side */
   }
 }
 
@@ -1049,9 +1049,9 @@ body.light-theme .modal-header {
   }
 
   #user-input {
-    padding: 0.6rem 2.5rem 0.6rem 0.9rem !important;
+    padding: 0.6rem 2.5rem 0.6rem 0.6rem !important;
     font-size: 0.9rem !important;
-    border-radius: 1.25rem 0 0 1.25rem !important;
+    border-radius: 0.75rem 0 0 0.75rem !important;
     height: 38px !important;
   }
 
