@@ -1330,11 +1330,9 @@ export function initializeEventHandlers() {
  */
 async function handleChatFormSubmit(e) {
     e.preventDefault();
-    console.log("Chat form submit triggered");
 
     // Use a static flag to prevent multiple submissions while processing
     if (handleChatFormSubmit.isSubmitting) {
-        console.log("Form submission already in progress, ignoring duplicate submit");
         return;
     }
 
@@ -1351,16 +1349,9 @@ async function handleChatFormSubmit(e) {
         // Check if we have files but no message
         const hasUploadedFiles = uploadedFiles && uploadedFiles.length > 0;
 
-        console.log("Form submission details:", {
-            message: message,
-            hasUploadedFiles: hasUploadedFiles,
-            uploadedFilesCount: hasUploadedFiles ? uploadedFiles.length : 0,
-            uploadedFileNames: hasUploadedFiles ? uploadedFiles.map(f => f.name).join(', ') : 'none'
-        });
 
         // If there's no message and no files, don't do anything
         if (!message && !hasUploadedFiles) {
-            console.log("No message and no files, canceling submission");
             return;
         }
 

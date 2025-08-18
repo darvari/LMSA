@@ -1616,6 +1616,5 @@ export function hideScrollToBottomButton() {
     if (scrollButton) {
         scrollButton.classList.remove('visible', 'show');
         scrollButton.classList.add('hidden');
-        console.log('Scroll-to-bottom button hidden during chat/screen transition');
     }
 }

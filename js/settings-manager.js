@@ -64,7 +64,6 @@ export function initializeTemperature() {
         // Event prevention for when locked
         const preventSliderInteraction = (e) => {
             if (isLocked) {
-                console.log('Preventing slider interaction - locked state');
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
@@ -79,7 +78,6 @@ export function initializeTemperature() {
         
         // Helper function to apply locked state
         const applyLockedState = () => {
-            console.log('Applying LOCKED state');
             temperatureInput.disabled = true;
             temperatureInput.style.pointerEvents = 'none';
             temperatureInput.style.cursor = 'not-allowed';
@@ -88,12 +86,10 @@ export function initializeTemperature() {
             temperatureInput.setAttribute('readonly', 'true');
             temperatureLock.innerHTML = '<i class="fas fa-lock text-red-400"></i>';
             temperatureLock.title = 'Temperature is locked (click to unlock)';
-            console.log('Locked state applied - disabled:', temperatureInput.disabled, 'pointerEvents:', temperatureInput.style.pointerEvents);
         };
         
         // Helper function to apply unlocked state
         const applyUnlockedState = () => {
-            console.log('Applying UNLOCKED state');
             temperatureInput.disabled = false;
             temperatureInput.style.pointerEvents = 'auto';
             temperatureInput.style.cursor = 'pointer';
@@ -102,27 +98,22 @@ export function initializeTemperature() {
             temperatureInput.removeAttribute('readonly');
             temperatureLock.innerHTML = '<i class="fas fa-unlock text-green-400"></i>';
             temperatureLock.title = 'Temperature is unlocked (click to lock)';
-            console.log('Unlocked state applied - disabled:', temperatureInput.disabled, 'pointerEvents:', temperatureInput.style.pointerEvents);
         };
 
         // Add event listener
         temperatureLock.addEventListener('click', () => {
-            console.log('Lock clicked - current isLocked state:', isLocked);
             if (isLocked) {
                 // Currently locked, unlock it
-                console.log('Switching from LOCKED to UNLOCKED');
                 isLocked = false;
                 applyUnlockedState();
             } else {
                 // Currently unlocked, lock it
-                console.log('Switching from UNLOCKED to LOCKED');
                 isLocked = true;
                 applyLockedState();
             }
             
             // Force a repaint
             temperatureInput.offsetHeight;
-            console.log('New isLocked state:', isLocked);
         });
 
         // Load saved temperature
@@ -148,12 +139,9 @@ export function initializeTemperature() {
 
         // Apply initial locked state after value is set
         setTimeout(() => {
-            console.log('Initializing temperature slider - setting to LOCKED state');
-            console.log('Initial disabled state:', temperatureInput.disabled);
             applyLockedState();
             // Force a repaint to ensure styles are applied
             temperatureInput.offsetHeight;
-            console.log('Initialization complete - final disabled state:', temperatureInput.disabled);
         }, 50); // Longer delay to ensure DOM is fully ready
     }
 }
