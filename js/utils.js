@@ -1012,8 +1012,6 @@ export function scrollToBottom(messagesContainer, force = false) {
 export function scrollToBottomManual(messagesContainer) {
     if (!messagesContainer) return;
     
-    console.log('Manual scroll to bottom triggered');
-    
     // Calculate distance for smooth scrolling decision
     const distanceFromBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight;
     const useSmooth = distanceFromBottom < 1000;
@@ -1191,16 +1189,10 @@ export function handleScroll(messagesContainer) {
                 // Show button when user has scrolled up
                 scrollButton.classList.remove('hidden');
                 scrollButton.classList.add('visible', 'show');
-                if (!wasVisible) {
-                    console.log('Scroll-to-bottom button shown (distance from bottom:', distanceFromBottom + 'px)');
-                }
             } else {
                 // Hide button when user is at or near bottom
                 scrollButton.classList.remove('visible', 'show');
                 scrollButton.classList.add('hidden');
-                if (wasVisible) {
-                    console.log('Scroll-to-bottom button hidden (distance from bottom:', distanceFromBottom + 'px)');
-                }
             }
         } else {
             console.warn('Scroll-to-bottom button element not found');

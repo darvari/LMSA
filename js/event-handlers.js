@@ -947,7 +947,6 @@ export function initializeEventHandlers() {
     const scrollToBottomButton = document.getElementById('scroll-to-bottom');
     if (scrollToBottomButton && messagesContainer) {
         scrollToBottomButton.addEventListener('click', () => {
-            console.log('Floating scroll to bottom button clicked - manual scroll');
             debugLog('Floating scroll to bottom button clicked');
             scrollToBottomManual(messagesContainer);
         });
@@ -1435,7 +1434,6 @@ async function handleChatFormSubmit(e) {
                 }
 
                 // Generate AI response with the files
-                console.log("Generating AI response with message and files");
                 await generateAIResponse(message, fileContents);
             } catch (error) {
                 debugError('Error in file processing or AI response generation:', error);
