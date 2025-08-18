@@ -51,7 +51,6 @@ async function initializeApp() {
         
         if (isMobile) {
             loadingManager.updateMobileProgress('detecting');
-            console.log('Mobile device detected, loading mobile optimizations...');
             
             loadingManager.updateMobileProgress('loading');
             // Load mobile optimizations asynchronously without blocking
@@ -60,7 +59,6 @@ async function initializeApp() {
             
             loadingManager.updateMobileProgress('applying');
             // Apply optimizations but don't block main initialization
-            console.log('Mobile optimizations loaded');
             
             loadingManager.updateMobileProgress('complete');
         } else {
@@ -239,7 +237,6 @@ async function initializeApp() {
     
     // Mobile optimizations are loaded conditionally above
     loadingManager.updateFeatureProgress('complete');
-    console.log('Core app initialization completed');
     
     // Complete loading process
     loadingManager.complete();

@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to generate email support link
     function generateSupportEmail() {
-        const supportEmail = 'help@techray.on.spiceworks.com';
+        const supportEmail = 'support@lmsa.app';
         const subject = 'LMSA App Technical Support';
 
         // Create a user-friendly email template with simple questions
@@ -211,6 +211,7 @@ Thank you for your help!
         }
 
         // Tutorial video button event listener
+        /*
         if (tutorialVideoBtn) {
             tutorialVideoBtn.addEventListener('click', () => {
                 // Show confirmation modal before opening YouTube video
@@ -218,6 +219,7 @@ Thank you for your help!
                 showExternalSiteModal(youtubeUrl);
             });
         }
+        */
 
         // Support Articles button event listener
         if (supportArticlesBtn) {
@@ -291,13 +293,13 @@ Thank you for your help!
                 } catch (error) {
                     // Fallback: copy email address to clipboard if available
                     if (navigator.clipboard) {
-                        navigator.clipboard.writeText('help@techray.on.spiceworks.com').then(() => {
-                            alert('Email address copied to clipboard: help@techray.on.spiceworks.com');
+                        navigator.clipboard.writeText('support@lmsa.app').then(() => {
+                            alert('Email address copied to clipboard: support@lmsa.app');
                         }).catch(() => {
-                            alert('Please email us at: help@techray.on.spiceworks.com');
+                            alert('Please email us at: support@lmsa.app');
                         });
                     } else {
-                        alert('Please email us at: help@techray.on.spiceworks.com');
+                        alert('Please email us at: support@lmsa.app');
                     }
                 }
             });

@@ -46,16 +46,23 @@ export function showSettingsModal() {
     if (connectionLabelContainer) connectionLabelContainer.style.display = '';
     if (urlInfoContainer) urlInfoContainer.style.display = '';
 
-    // Get the modal content
+    // Get both modal container and content and ensure styles don't conflict
     const modalContent = settingsModal.querySelector('.modal-content');
+    
+    // Clean up any inline styles on the modal container itself
+    ['position', 'top', 'left', 'right', 'bottom', 'transform', 'width', 'height', 'margin', 'display', 'align-items', 'justify-content'].forEach(prop => {
+        settingsModal.style.removeProperty(prop);
+    });
+    
     if (modalContent) {
-        // Remove all inline styles that might be overriding our CSS
-        modalContent.style.removeProperty('background-color');
-        modalContent.style.removeProperty('position');
-        modalContent.style.removeProperty('z-index');
-        modalContent.style.removeProperty('opacity');
-        modalContent.style.removeProperty('transform');
-        modalContent.style.removeProperty('transition');
+        // Remove any inline styles that might be overriding our CSS
+        ['background-color', 'position', 'z-index', 'opacity', 'transform', 'transition', 
+         'width', 'max-width', 'height', 'max-height', 'top', 'left', 'right', 'bottom', 'margin'].forEach(prop => {
+            modalContent.style.removeProperty(prop);
+        });
+        
+        // Remove any mobile-specific classes that might conflict
+        modalContent.classList.remove('mobile-modal');
     }
 
 
@@ -175,10 +182,16 @@ export function hideSettingsModal() {
 
         // Reset any inline styles that might have been added
         if (modalContent) {
-            modalContent.style.removeProperty('opacity');
-            modalContent.style.removeProperty('transform');
-            modalContent.style.removeProperty('transition');
+            ['opacity', 'transform', 'transition', 'position', 'top', 'left', 'right', 'bottom', 'width', 'max-width', 'height', 'max-height', 'margin'].forEach(prop => {
+                modalContent.style.removeProperty(prop);
+            });
+            modalContent.classList.remove('mobile-modal');
         }
+        
+        // Also clean the modal container
+        ['position', 'top', 'left', 'right', 'bottom', 'transform', 'width', 'height', 'margin', 'display', 'align-items', 'justify-content'].forEach(prop => {
+            settingsModal.style.removeProperty(prop);
+        });
 
         // Check if welcome message should be shown
         checkAndShowWelcomeMessage();
@@ -441,6 +454,23 @@ export function initializeSettingsModalNavigation() {
     // Handle window resize to toggle between mobile and desktop views
     window.addEventListener('resize', () => {
         const navButtons = document.getElementById('settings-navigation-buttons');
+        
+        // Clear any conflicting inline styles on resize
+        if (settingsModal && !settingsModal.classList.contains('hidden')) {
+            // Clean modal container styles
+            ['position', 'top', 'left', 'right', 'bottom', 'transform', 'width', 'height', 'margin', 'display', 'align-items', 'justify-content'].forEach(prop => {
+                settingsModal.style.removeProperty(prop);
+            });
+            
+            const modalContent = settingsModal.querySelector('.modal-content');
+            if (modalContent) {
+                // Remove any inline styles that might interfere with CSS responsive design
+                ['position', 'top', 'left', 'right', 'bottom', 'transform', 'width', 'max-width', 'height', 'max-height', 'margin'].forEach(prop => {
+                    modalContent.style.removeProperty(prop);
+                });
+                modalContent.classList.remove('mobile-modal');
+            }
+        }
 
         if (window.innerWidth >= 1024) {
             // Desktop view - show all steps

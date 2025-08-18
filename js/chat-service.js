@@ -3,7 +3,7 @@ import { messagesContainer, userInput, loadedModelDisplay } from './dom-elements
 import { appendMessage, showLoadingIndicator, hideLoadingIndicator, toggleSendStopButton, hideWelcomeMessage, showWelcomeMessage, toggleSidebar, showConfirmationModal, hideConfirmationModal, updateChatHistoryScroll } from './ui-manager.js';
 import { getApiUrl, getAvailableModels, isServerRunning, fetchAvailableModels } from './api-service.js';
 import { getSystemPrompt, getTemperature, isSystemPromptSet, getAutoGenerateTitles, isUserCreatedPrompt, getHideThinking, getReasoningTimeout } from './settings-manager.js';
-import { sanitizeInput, basicSanitizeInput, initializeCodeMirror, scrollToBottom, handleScroll, debugLog, debugError, filterToEnglishCharacters, processCodeBlocks, decodeHtmlEntities, refreshAllCodeBlocks, containsCodeBlocks, containsCodeBlocksOutsideThinkTags, saveCurrentChatBeforeRefresh, removeThinkTags } from './utils.js';
+import { sanitizeInput, basicSanitizeInput, initializeCodeMirror, scrollToBottom, handleScroll, debugLog, debugError, filterToEnglishCharacters, processCodeBlocks, decodeHtmlEntities, refreshAllCodeBlocks, containsCodeBlocks, containsCodeBlocksOutsideThinkTags, saveCurrentChatBeforeRefresh, removeThinkTags, hideScrollToBottomButton } from './utils.js';
 import { setActionToPerform } from './shared-state.js';
 
 let currentChatId = Date.now();
@@ -126,16 +126,9 @@ async function generateAIResponseInternal(userMessage, fileContents = []) {
     abortController = new AbortController();
     const signal = abortController.signal;
 
-    // Prepare the content container for the AI message
-    const aiMessageElement = appendMessage('ai', '');
-    const contentContainer = aiMessageElement.querySelector('.message-content');
-
-    // If we couldn't find a container, log error and stop
-    if (!contentContainer) {
-        debugError('Could not find message content container for AI message');
-        isGenerating = false;
-        return;
-    }
+    // Prepare variables for the AI message (will be created when first content arrives)
+    let aiMessageElement = null;
+    let contentContainer = null;
 
     let aiMessage = '';
     let hasCodeBlock = false; // Track if we detected a code block
@@ -525,6 +518,19 @@ async function generateAIResponseInternal(userMessage, fileContents = []) {
 
                                 // Add content if it exists in this chunk
                                 if (delta.content) {
+                                    // Create the AI message bubble on first content arrival
+                                    if (!aiMessageElement) {
+                                        aiMessageElement = appendMessage('ai', '');
+                                        contentContainer = aiMessageElement.querySelector('.message-content');
+                                        
+                                        // If we couldn't find a container, log error and stop
+                                        if (!contentContainer) {
+                                            debugError('Could not find message content container for AI message');
+                                            isGenerating = false;
+                                            return;
+                                        }
+                                    }
+                                    
                                     aiMessage += delta.content;
 
                                     // Track thinking process for progress indication
@@ -589,8 +595,8 @@ async function generateAIResponseInternal(userMessage, fileContents = []) {
                                         }
                                     }
 
-                                    // Apply the appropriate sanitization based on message type and hide thinking setting
-                                    if (hasThinkTags) {
+                                    // Apply the appropriate sanitization based on message type and hide thinking setting (only if container exists)
+                                    if (hasThinkTags && contentContainer) {
                                         if (hideThinking) {
                                             // When hide thinking is enabled, always hide thinking tags and content
                                             if (contentAfterThink !== "") {
@@ -651,7 +657,7 @@ async function generateAIResponseInternal(userMessage, fileContents = []) {
 
                                         // Mark this message as having thinking
                                         aiMessageElement.dataset.hasThinking = 'true';
-                                    } else {
+                                    } else if (contentContainer) {
                                         // For non-reasoning models, apply basic sanitization
                                         contentContainer.innerHTML = basicSanitizeInput(aiMessage);
                                         // Mark this message as a non-reasoning model response
@@ -714,15 +720,17 @@ async function generateAIResponseInternal(userMessage, fileContents = []) {
                 }
             }
 
-            if (hideThinking) {
-                // Hide thinking tags when hide thinking is enabled
-                const processedContent = aiMessage.replace(/<think>[\s\S]*?<\/think>/g, '');
-                contentContainer.innerHTML = basicSanitizeInput(processedContent);
-            } else {
-                // Show everything including thinking tags when hide thinking is disabled
-                contentContainer.innerHTML = sanitizeInput(aiMessage);
+            if (contentContainer) {
+                if (hideThinking) {
+                    // Hide thinking tags when hide thinking is enabled
+                    const processedContent = aiMessage.replace(/<think>[\s\S]*?<\/think>/g, '');
+                    contentContainer.innerHTML = basicSanitizeInput(processedContent);
+                } else {
+                    // Show everything including thinking tags when hide thinking is disabled
+                    contentContainer.innerHTML = sanitizeInput(aiMessage);
+                }
             }
-        } else {
+        } else if (contentContainer) {
             // No thinking tags, show content normally
             contentContainer.innerHTML = basicSanitizeInput(aiMessage);
         }
@@ -1390,6 +1398,9 @@ export function loadChat(id, isFirstMessageReload = false) {
     // This prevents the welcome screen from showing through during the transition
     hideWelcomeMessage();
 
+    // Hide the scroll-to-bottom button when switching chats
+    hideScrollToBottomButton();
+
     // Check if the system prompt was user-created
     const isUserCreated = isUserCreatedPrompt();
     const savedPrompt = localStorage.getItem('systemPrompt');
@@ -1580,6 +1591,9 @@ export function clearAllChats() {
     chatHistoryData = {};
     updateChatHistoryUI();
 
+    // Hide the scroll-to-bottom button when clearing all chats
+    hideScrollToBottomButton();
+
     // Check if the system prompt was user-created before clearing the active character
     const isUserCreated = isUserCreatedPrompt();
     const savedPrompt = localStorage.getItem('systemPrompt');
@@ -1666,7 +1680,6 @@ export function clearAllChats() {
  * @returns {string} - The ID of the new chat
  */
 export function createNewChat() {
-    console.log('Creating new chat');
 
     // Generate a new chat ID
     const newChatId = Date.now().toString();
@@ -1684,6 +1697,9 @@ export function createNewChat() {
     // Clear the messages container and show the welcome message
     messagesContainer.innerHTML = '';
     showWelcomeMessage();
+
+    // Hide the scroll-to-bottom button when starting a new chat
+    hideScrollToBottomButton();
 
     // Update UI
     updateChatHistoryUI();
@@ -2447,17 +2463,9 @@ export async function regenerateLastResponse(isRetry = false) {
         showLoadingIndicator();
         toggleSendStopButton();
 
-        // Prepare the content container for the AI message
-        const aiMessageElement = appendMessage('ai', '');
-        const contentContainer = aiMessageElement.querySelector('.message-content');
-
-        // If we couldn't find a container, log error and stop
-        if (!contentContainer) {
-            debugError('Could not find message content container for regenerated AI message');
-            isGenerating = false;
-            hideLoadingIndicator();
-            return;
-        }
+        // Prepare variables for the AI message (will be created when first content arrives)
+        let aiMessageElement = null;
+        let contentContainer = null;
 
         let aiMessage = '';
         let hasCodeBlock = false; // Track if we detected a code block
@@ -2639,6 +2647,20 @@ export async function regenerateLastResponse(isRetry = false) {
                                     const delta = data.choices[0].delta;
 
                                     if (delta.content) {
+                                        // Create the AI message bubble on first content arrival
+                                        if (!aiMessageElement) {
+                                            aiMessageElement = appendMessage('ai', '');
+                                            contentContainer = aiMessageElement.querySelector('.message-content');
+                                            
+                                            // If we couldn't find a container, log error and stop
+                                            if (!contentContainer) {
+                                                debugError('Could not find message content container for regenerated AI message');
+                                                isGenerating = false;
+                                                hideLoadingIndicator();
+                                                return;
+                                            }
+                                        }
+                                        
                                         aiMessage += delta.content;
 
                                         // Track thinking process for progress indication (same as initial generation)
@@ -2703,7 +2725,7 @@ export async function regenerateLastResponse(isRetry = false) {
                                             }
                                         }
 
-                                        if (hasThinkTags) {
+                                        if (hasThinkTags && contentContainer) {
                                             if (hideThinking) {
                                                 // When hide thinking is enabled, always hide thinking tags and content
                                                 if (contentAfterThink !== "") {
@@ -2764,7 +2786,7 @@ export async function regenerateLastResponse(isRetry = false) {
 
                                             // Mark this message as having thinking
                                             aiMessageElement.dataset.hasThinking = 'true';
-                                        } else {
+                                        } else if (contentContainer) {
                                             // For non-reasoning models, apply basic sanitization
                                             contentContainer.innerHTML = basicSanitizeInput(aiMessage);
                                             // Mark this message as a non-reasoning model response
@@ -2824,15 +2846,17 @@ export async function regenerateLastResponse(isRetry = false) {
                     }
                 }
 
-                if (hideThinking) {
-                    // Hide thinking tags when hide thinking is enabled
-                    const processedContent = aiMessage.replace(/<think>[\s\S]*?<\/think>/g, '');
-                    contentContainer.innerHTML = basicSanitizeInput(processedContent);
-                } else {
-                    // Show everything including thinking tags when hide thinking is disabled
-                    contentContainer.innerHTML = sanitizeInput(aiMessage);
+                if (contentContainer) {
+                    if (hideThinking) {
+                        // Hide thinking tags when hide thinking is enabled
+                        const processedContent = aiMessage.replace(/<think>[\s\S]*?<\/think>/g, '');
+                        contentContainer.innerHTML = basicSanitizeInput(processedContent);
+                    } else {
+                        // Show everything including thinking tags when hide thinking is disabled
+                        contentContainer.innerHTML = sanitizeInput(aiMessage);
+                    }
                 }
-            } else {
+            } else if (contentContainer) {
                 // No thinking tags, show content normally
                 contentContainer.innerHTML = basicSanitizeInput(aiMessage);
             }

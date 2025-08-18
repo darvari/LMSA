@@ -236,7 +236,6 @@ export async function fetchAvailableModels() {
             }
 
             const data = await modelsResponse.json();
-            console.log('Raw API response from /v1/models:', data);
 
             if (!data || !data.data || !Array.isArray(data.data)) {
                 console.error('Invalid response format from server:', data);
@@ -248,7 +247,6 @@ export async function fetchAvailableModels() {
             }
 
             const modelsList = data.data;
-            console.log('Models list from API:', modelsList);
 
             // Try to determine which model is loaded through multiple methods
 
@@ -294,7 +292,6 @@ export async function fetchAvailableModels() {
 
                             if (modelInfoResponse.ok) {
                                 const modelInfo = await modelInfoResponse.json();
-                                console.log(`Model info from ${endpoint}:`, modelInfo);
 
                                 if (modelInfo && modelInfo.id) {
                                     // Find the matching model in our list
@@ -306,7 +303,6 @@ export async function fetchAvailableModels() {
                                 }
                             } else {
                                 // Don't log errors for expected 400 responses
-                                console.log(`Endpoint ${endpoint} not available or returned non-OK response`);
                             }
                         } catch (endpointError) {
                             // Don't log the full error, just note that it wasn't available
@@ -322,7 +318,6 @@ export async function fetchAvailableModels() {
             // This will help detect if a model is actually loaded even if the API doesn't report it
             if (!loadedModelInfo && modelsList.length > 0) {
                 try {
-                    console.log('Trying to detect loaded model via completion API...');
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 3000);
 
@@ -348,10 +343,8 @@ export async function fetchAvailableModels() {
 
                     if (chatResponse.ok) {
                         const result = await chatResponse.json();
-                        console.log('Completion API response:', result);
 
                         if (result && result.model) {
-                            console.log('Found model ID from completion API:', result.model);
                             // Find this model in our list
                             loadedModelInfo = modelsList.find(model => model.id === result.model);
                             if (!loadedModelInfo && modelsList.length > 0) {
@@ -379,18 +372,15 @@ export async function fetchAvailableModels() {
 
             if (loadedModelInfo) {
                 // We found a loaded model
-                console.log('Found loaded model:', loadedModelInfo.id);
                 availableModels = [loadedModelInfo.id];
 
                 // Store the loaded model name in a global variable for easy access
                 window.currentLoadedModel = loadedModelInfo.id;
-                console.log('Set global currentLoadedModel to:', loadedModelInfo.id);
                 
                 // Update file upload capabilities now that we have a model
                 try {
                     const { updateFileUploadCapabilities } = await import('./file-upload.js');
                     await updateFileUploadCapabilities();
-                    console.log('File upload capabilities updated for model:', loadedModelInfo.id);
                 } catch (error) {
                     console.error('Failed to update file upload capabilities after model detection:', error);
                 }
@@ -407,11 +397,12 @@ export async function fetchAvailableModels() {
                         loadedModelDisplay.classList.remove('hidden');
                     }
                 } else {
-                    console.log('Model banner was previously hidden by user, keeping it hidden');
-                    // Still update the model name but keep it hidden
-                    if (loadedModelDisplay) {
-                        loadedModelDisplay.textContent = `Loaded Model: ${loadedModelInfo.id}`;
-                        hideLoadedModelDisplay(false); // Don't save the state again
+                    // Remove the banner completely from DOM
+                    const modelWrapper = document.getElementById('loaded-model-wrapper');
+                    if (modelWrapper) {
+                        modelWrapper.remove();
+                        // Reset the CSS variable to 0
+                        document.documentElement.style.setProperty('--loaded-model-height', '0px');
                     }
                 }
             } else {
@@ -496,41 +487,30 @@ export function updateLoadedModelDisplay(modelName, forceShow = false) {
 }
 
 /**
- * Hides the loaded model display
+ * Removes the loaded model display completely
  */
 export function hideLoadedModelDisplay(saveState = true) {
-    if (loadedModelDisplay) {
-        // Set the hidden properties
-        loadedModelDisplay.style.maxHeight = '0';
-        loadedModelDisplay.style.opacity = '0';
-        loadedModelDisplay.style.transform = 'translateY(-100%)';
-        loadedModelDisplay.style.visibility = 'hidden';
-
-        // Add the hidden class
-        loadedModelDisplay.classList.add('hidden');
-
-        // Hide the wrapper
-        const modelWrapper = document.getElementById('loaded-model-wrapper');
-        if (modelWrapper) {
-            modelWrapper.style.display = 'none';
-            // Reset the CSS variable to 0
-            document.documentElement.style.setProperty('--loaded-model-height', '0px');
-        }
-
-        // Always store banner state as hidden
-        localStorage.setItem('modelBannerVisible', 'false');
-
-        // Update welcome message position
-        import('./ui-manager.js').then(module => {
-            const welcomeMessage = document.getElementById('welcome-message');
-            if (welcomeMessage && welcomeMessage.style.display !== 'none') {
-                module.ensureWelcomeMessagePosition();
-            }
-        });
-
-        // Don't clear the global model variable when hiding the banner
-        // This ensures the models modal still recognizes the loaded model even when the banner is hidden
+    // Remove the wrapper completely from DOM
+    const modelWrapper = document.getElementById('loaded-model-wrapper');
+    if (modelWrapper) {
+        modelWrapper.remove();
+        // Reset the CSS variable to 0
+        document.documentElement.style.setProperty('--loaded-model-height', '0px');
     }
+
+    // Always store banner state as hidden
+    localStorage.setItem('modelBannerVisible', 'false');
+
+    // Update welcome message position
+    import('./ui-manager.js').then(module => {
+        const welcomeMessage = document.getElementById('welcome-message');
+        if (welcomeMessage && welcomeMessage.style.display !== 'none') {
+            module.ensureWelcomeMessagePosition();
+        }
+    });
+
+    // Don't clear the global model variable when hiding the banner
+    // This ensures the models modal still recognizes the loaded model even when the banner is hidden
 }
 
 /**

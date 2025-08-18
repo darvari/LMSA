@@ -36,7 +36,6 @@ class LoadingManager {
         // Set initial state
         this.updateProgress('Initializing core systems...', 'core');
         
-        console.log('[LoadingManager] Initialized');
     }
 
     /**
@@ -66,7 +65,6 @@ class LoadingManager {
             this.currentStage = stage;
         }
         
-        console.log(`[LoadingManager] ${message}${stage ? ` (${stage})` : ''}`);
     }
 
     /**
@@ -120,7 +118,6 @@ class LoadingManager {
         
         this.updateProgress(`Ready! (${loadTime}ms)`);
         
-        console.log(`[LoadingManager] App loaded in ${loadTime}ms`);
         
         // Wait a moment then hide loading overlay
         setTimeout(() => {
@@ -156,7 +153,6 @@ class LoadingManager {
             
         }, 500);
         
-        console.log('[LoadingManager] Loading overlay hidden');
     }
 
     /**
@@ -175,14 +171,12 @@ class LoadingManager {
             spinner.style.borderTopColor = '#ef4444';
         }
         
-        console.error('[LoadingManager] Error:', error);
     }
 
     /**
      * Force complete loading (for debugging or fallback)
      */
     forceComplete() {
-        console.warn('[LoadingManager] Force completing loading');
         this.complete();
     }
 
@@ -206,7 +200,6 @@ export const loadingManager = new LoadingManager();
 // Auto-complete loading after a timeout as fallback
 setTimeout(() => {
     if (!loadingManager.isComplete) {
-        console.warn('[LoadingManager] Auto-completing loading after timeout');
         loadingManager.complete();
     }
 }, 10000); // 10 second timeout

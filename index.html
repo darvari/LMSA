@@ -1104,7 +1104,7 @@
         <div class="relative dark:bg-gradient-to-b dark:from-[#1e293b] dark:via-[#334155] dark:to-[#1e293b] light:bg-gradient-to-b light:from-[#f8fafc] light:via-[#f1f5f9] light:to-[#f8fafc] p-8 rounded-2xl w-[600px] max-w-[90%] h-[60vh] shadow-2xl overflow-hidden flex flex-col modal-content border border-blue-400/50 dark:border-blue-400/50 light:border-blue-400/30 backdrop-blur-sm">
             <div class="flex justify-between items-center mb-6">
                 <h2 id="saved-prompts-title" class="text-2xl font-bold text-gray-800 dark:text-gray-200">Saved System Prompts</h2>
-                <button id="close-saved-prompts-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold" aria-label="Close modal">&times;</button>
+                <button id="close-saved-prompts-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-3xl font-bold" aria-label="Close modal">&times;</button>
             </div>
             <div id="saved-prompts-list" class="flex-1 overflow-y-auto">
                 <!-- Saved prompts will be dynamically inserted here -->
@@ -1175,14 +1175,14 @@
 
     <!-- Settings modal -->
     <div id="settings-modal" class="fixed inset-0 flex items-center justify-center hidden modal-container" aria-labelledby="settings-title" role="dialog" aria-modal="true">
-        <div class="p-6 rounded-lg w-96 max-w-[90%] shadow-lg modal-content border border-white/10">
+        <div class="modal-content">
             <!-- Settings Header -->
             <div class="flex flex-col sticky top-0 z-10 mb-6 pb-1 border-b border-gray-700/30 bg-inherit">
                 <div class="flex justify-between items-center mb-2">
                     <h2 id="settings-title" class="text-xl font-bold flex items-center">
                         <i class="fas fa-cog text-blue-400 mr-2"></i>Settings
                     </h2>
-                    <button id="close-settings-x" class="text-gray-400 hover:text-white focus:outline-none transition-all duration-300 ease-in-out rounded-full hover:bg-gray-800/50 w-8 h-8 flex items-center justify-center" aria-label="Close settings">
+                    <button id="close-settings-x" aria-label="Close settings">
                         <i class="fas fa-times text-lg"></i>
                     </button>
                 </div>
@@ -1572,15 +1572,13 @@
             <div class="p-6 pt-0 space-y-4 sticky bottom-0 z-10" style="background: var(--modal-bg);">
                 <div class="flex flex-col md:flex-row gap-4">
                     <!-- Watch Tutorial Video Button -->
-                    <button id="tutorial-video-btn" class="professional-button flex items-center justify-center gap-3 flex-1 h-[48px]">
-                        <i class="fab fa-youtube text-sm"></i>
-                        <span>Watch Tutorial Video</span>
-                    </button>
 
                     <!-- Support Articles Button -->
                     <button id="support-articles-btn" class="professional-button flex items-center justify-center gap-3 flex-1 h-[48px]">
                         <i class="fas fa-book text-sm"></i>
                         <span>Support Articles</span>
+                    </button>
+                </div>
                     </button>
                 </div>
 
@@ -1670,9 +1668,9 @@
                 <p class="text-xs text-gray-400 dark:text-gray-400 light:text-gray-600 mb-2">
                     Email app not working? You can manually email us at:
                 </p>
-                <a href="mailto:help@techray.on.spiceworks.com"
+                <a href="mailto:support@lmsa.app"
                    class="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-200 underline decoration-dotted underline-offset-2">
-                    help@techray.on.spiceworks.com
+                    support@lmsa.app
                 </a>
             </div>
         </div>
@@ -1722,7 +1720,7 @@
                     <i class="fas fa-times"></i>
                 </button>
                 <div class="version-badge bg-white/10 px-4 py-1.5 rounded-full mx-auto w-fit mt-2">
-                    <p class="text-sm font-medium text-blue-300">Version 7.0</p>
+                    <p class="text-sm font-medium text-blue-300">Version 7.1</p>
                 </div>
             </div>
 
@@ -1882,7 +1880,7 @@
                                 <i class="fas fa-robot mr-1"></i>Tip
                             </h4>
                             <p class="text-xs text-gray-300 dark:text-gray-300 light:text-gray-600 leading-relaxed">
-                                Tap the robot icon to view the complete model name in a popup.
+                                LMSA must load the first model, otherwise it will not replace the loaded model with the one you select, and instead continue stacking models on top of another.
                             </p>
                         </div>
                     </div>
@@ -2110,7 +2108,7 @@
                             if (previewToggle.offsetParent === null) {
                                 // Element is still not visible, try more aggressive approach
                                 previewToggle.setAttribute('style', 'display: block !important; visibility: visible !important; opacity: 1 !important;');
-                                console.log('Applied emergency visibility fix to tablet view button');
+                ;
                             }
                         }, 100);
 
@@ -2167,7 +2165,6 @@
                     // Debounce resize events to avoid excessive calls
                     clearTimeout(resizeTimeout);
                     resizeTimeout = setTimeout(function() {
-                        console.log('Window resized, updating view mode...');
                         updateViewMode();
                     }, 250);
                 });
@@ -2176,7 +2173,6 @@
                 window.addEventListener('orientationchange', function() {
                     // Small delay to ensure dimensions are updated after orientation change
                     setTimeout(function() {
-                        console.log('Orientation changed, updating view mode...');
                         updateViewMode();
                     }, 300);
                 });

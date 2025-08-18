@@ -98,7 +98,6 @@ export function toggleSidebar() {
 
     // Prevent multiple rapid calls
     if (toggleSidebarTimeout) {
-        console.log('toggleSidebar blocked - too rapid');
         return;
     }
 
@@ -108,8 +107,6 @@ export function toggleSidebar() {
     }, 300);
 
     // Debug logging
-    console.log('toggleSidebar called');
-    console.log('Sidebar classes:', sidebar.className);
 
     // Remove focus from the sidebar toggle button to prevent it from staying highlighted
     const sidebarToggleBtn = document.getElementById('sidebar-toggle');
@@ -119,7 +116,6 @@ export function toggleSidebar() {
 
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     const isOpen = sidebar.classList.contains('active');
-    console.log('Sidebar is open:', isOpen);
     
     // Update hamburger icon based on sidebar state
     updateHamburgerIcon(!isOpen);
@@ -154,7 +150,6 @@ export function toggleSidebar() {
 
     // Add animation for smooth transition
     if (!isOpen) {
-        console.log('Opening sidebar');
         // Opening the sidebar
         sidebar.classList.remove('hidden');
         sidebar.classList.add('active');
@@ -178,7 +173,6 @@ export function toggleSidebar() {
         updateChatHistoryScroll();
         sidebar.classList.remove('animate-slide-in');
     } else {
-        console.log('Closing sidebar');
         // Closing the sidebar
         sidebar.classList.add('animate-slide-out');
         sidebar.classList.remove('animate-slide-in');

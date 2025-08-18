@@ -13,24 +13,20 @@
 </p>
 
 ## 🆕 What's New
-🎉 **Latest Update: Version 7.1** - August 2025
+🎉 **Latest Update: Version 7.1** - Now Available!
 
-### Changelog
-#### Major Changes
-- **Refactored All API Calls:** All API requests now use a shared `getServerUrl` function, ensuring correct protocol (HTTP/HTTPS) and port logic. This enables secure WAN access and resolves CORS/preflight redirect errors.
-- **Server Connection UI Improvements:** 
-  - Added support for domain names and IP addresses.
-  - SSL switch now defaults to port 443 for HTTPS and omits the port for standard protocols.
-  - Port field shows default value in grey if not set.
-- **Test Server Response Button:** Added a button in the settings page to test server connectivity and display server status.
-- **Dynamic Port Handling:** Port is omitted for standard protocols (80 for HTTP, 443 for HTTPS) to prevent browser redirect issues.
-- **Codebase Cleanup:** Removed all hardcoded `http://` and `:443` usages from API calls in all JS files.
+### New Features & Improvements
+- **Settings Menu Fix**: Fixed an issue where the settings menu wasn't positioning itself correctly on some devices, ensuring consistent user experience across all device types
 
-#### Bug Fixes
-- **CORS & Preflight Redirects:** Fixed persistent CORS errors by ensuring all requests use the correct protocol and port logic.
-- **Android Build Parity:** Synced all Cordova/Android build JS files with main codebase changes.
+## 🆕 ## Changes from Origin
+
+### New Features & Improvements
+- **Performance Optimization**: The app has been fully optimized to run better on more devices with improved performance, reduced memory usage, and enhanced stability across different hardware configurations
+- **System Prompts Feature**: The character feature has been replaced with the ability to save system prompts, providing a more flexible and powerful way to customize your AI interactions. You can now create, save, and manage multiple system prompts for different use cases
+- **Enhanced Compatibility**: Improved device compatibility and performance optimizations for a smoother experience across various Android devices
 
 ### Previous Updates
+- **Version 7.0**: Performance optimization, system prompts feature, and enhanced compatibility
 - **Version 6.5**: Added scroll to bottom icon, improved welcome screen behavior, and comprehensive performance improvements
 - **Version 5.5**: Added full Vision Language Model (VLM) support for image upload and analysis, enabling multimodal conversations with AI models
 - **Bug Fixes**: Resolved keyboard overlap issues, fixed PDF file attachments, and disabled auto-scroll feature for better chat experience

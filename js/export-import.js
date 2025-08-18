@@ -562,7 +562,6 @@ export function initializeExportImport() {
         return true;
     }
 
-    console.log('Import validation successful');
     return true;
 }
 

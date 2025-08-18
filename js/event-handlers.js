@@ -424,13 +424,11 @@ export function initializeEventHandlers() {
         // Prevent rapid-fire touch events
         const now = Date.now();
         if (now - lastTouchTime < 100) {
-            console.log('Touch event ignored - too rapid');
             return;
         }
         lastTouchTime = now;
         
         // Debug logging
-        console.log('Touch end detected:', e);
         
         // Only process if this is a simple tap (not scrolling or other complex gestures)
         if (e.changedTouches && e.changedTouches.length === 1) {
@@ -449,7 +447,6 @@ export function initializeEventHandlers() {
                 elementAtTouch.closest('.menu-item') !== null ||
                 elementAtTouch.closest('#chat-history') !== null ||
                 elementAtTouch.closest('#sidebar') !== null)) {
-                console.log('Touch on interactive element - skipping sidebar outside click logic');
                 return;
             }
 
@@ -950,7 +947,6 @@ export function initializeEventHandlers() {
     const scrollToBottomButton = document.getElementById('scroll-to-bottom');
     if (scrollToBottomButton && messagesContainer) {
         scrollToBottomButton.addEventListener('click', () => {
-            console.log('Floating scroll to bottom button clicked - manual scroll');
             debugLog('Floating scroll to bottom button clicked');
             scrollToBottomManual(messagesContainer);
         });
@@ -1334,11 +1330,9 @@ export function initializeEventHandlers() {
  */
 async function handleChatFormSubmit(e) {
     e.preventDefault();
-    console.log("Chat form submit triggered");
 
     // Use a static flag to prevent multiple submissions while processing
     if (handleChatFormSubmit.isSubmitting) {
-        console.log("Form submission already in progress, ignoring duplicate submit");
         return;
     }
 
@@ -1355,16 +1349,9 @@ async function handleChatFormSubmit(e) {
         // Check if we have files but no message
         const hasUploadedFiles = uploadedFiles && uploadedFiles.length > 0;
 
-        console.log("Form submission details:", {
-            message: message,
-            hasUploadedFiles: hasUploadedFiles,
-            uploadedFilesCount: hasUploadedFiles ? uploadedFiles.length : 0,
-            uploadedFileNames: hasUploadedFiles ? uploadedFiles.map(f => f.name).join(', ') : 'none'
-        });
 
         // If there's no message and no files, don't do anything
         if (!message && !hasUploadedFiles) {
-            console.log("No message and no files, canceling submission");
             return;
         }
 
@@ -1438,7 +1425,6 @@ async function handleChatFormSubmit(e) {
                 }
 
                 // Generate AI response with the files
-                console.log("Generating AI response with message and files");
                 await generateAIResponse(message, fileContents);
             } catch (error) {
                 debugError('Error in file processing or AI response generation:', error);

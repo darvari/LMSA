@@ -579,7 +579,6 @@ class MobilePerformanceOptimizer {
      */
     pauseNonEssentialOperations() {
         // Pause animations
-        console.log('Mobile optimizer: Adding performance-mode class');
         document.body.classList.add('performance-mode');
         
         // Clear any running intervals that aren't critical
@@ -592,7 +591,6 @@ class MobilePerformanceOptimizer {
      * Resume operations when app becomes visible
      */
     resumeOperations() {
-        console.log('Mobile optimizer: Removing performance-mode class');
         document.body.classList.remove('performance-mode');
         
         // Resume performance monitoring if needed
