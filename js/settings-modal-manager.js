@@ -46,54 +46,23 @@ export function showSettingsModal() {
     if (connectionLabelContainer) connectionLabelContainer.style.display = '';
     if (urlInfoContainer) urlInfoContainer.style.display = '';
 
-    // Get the modal content and ensure proper mobile positioning
+    // Get both modal container and content and ensure styles don't conflict
     const modalContent = settingsModal.querySelector('.modal-content');
+    
+    // Clean up any inline styles on the modal container itself
+    ['position', 'top', 'left', 'right', 'bottom', 'transform', 'width', 'height', 'margin', 'display', 'align-items', 'justify-content'].forEach(prop => {
+        settingsModal.style.removeProperty(prop);
+    });
+    
     if (modalContent) {
-        // Remove all inline styles that might be overriding our CSS
-        modalContent.style.removeProperty('background-color');
-        modalContent.style.removeProperty('position');
-        modalContent.style.removeProperty('z-index');
-        modalContent.style.removeProperty('opacity');
-        modalContent.style.removeProperty('transform');
-        modalContent.style.removeProperty('transition');
-        modalContent.style.removeProperty('width');
-        modalContent.style.removeProperty('max-width');
-        modalContent.style.removeProperty('height');
-        modalContent.style.removeProperty('max-height');
-        modalContent.style.removeProperty('top');
-        modalContent.style.removeProperty('left');
-        modalContent.style.removeProperty('margin');
+        // Remove any inline styles that might be overriding our CSS
+        ['background-color', 'position', 'z-index', 'opacity', 'transform', 'transition', 
+         'width', 'max-width', 'height', 'max-height', 'top', 'left', 'right', 'bottom', 'margin'].forEach(prop => {
+            modalContent.style.removeProperty(prop);
+        });
         
-        // Add mobile viewport detection and handling
-        if (window.innerWidth <= 767) {
-            modalContent.classList.add('mobile-modal');
-            // Force viewport-based sizing for mobile
-            modalContent.style.position = 'fixed';
-            modalContent.style.top = '50%';
-            modalContent.style.left = '50%';
-            modalContent.style.transform = 'translate(-50%, -50%)';
-            
-            // Adjust width based on screen size
-            if (window.innerWidth <= 375) {
-                modalContent.style.width = 'calc(100vw - 16px)';
-                modalContent.style.maxWidth = 'calc(100vw - 16px)';
-            } else if (window.innerWidth <= 480) {
-                modalContent.style.width = '96vw';
-                modalContent.style.maxWidth = '96vw';
-            } else {
-                modalContent.style.width = '95vw';
-                modalContent.style.maxWidth = '95vw';
-            }
-            
-            modalContent.style.maxHeight = '90vh';
-            if (window.visualViewport) {
-                modalContent.style.maxHeight = '90dvh';
-            }
-            modalContent.style.overflow = 'hidden';
-            modalContent.style.boxSizing = 'border-box';
-        } else {
-            modalContent.classList.remove('mobile-modal');
-        }
+        // Remove any mobile-specific classes that might conflict
+        modalContent.classList.remove('mobile-modal');
     }
 
 
@@ -213,10 +182,16 @@ export function hideSettingsModal() {
 
         // Reset any inline styles that might have been added
         if (modalContent) {
-            modalContent.style.removeProperty('opacity');
-            modalContent.style.removeProperty('transform');
-            modalContent.style.removeProperty('transition');
+            ['opacity', 'transform', 'transition', 'position', 'top', 'left', 'right', 'bottom', 'width', 'max-width', 'height', 'max-height', 'margin'].forEach(prop => {
+                modalContent.style.removeProperty(prop);
+            });
+            modalContent.classList.remove('mobile-modal');
         }
+        
+        // Also clean the modal container
+        ['position', 'top', 'left', 'right', 'bottom', 'transform', 'width', 'height', 'margin', 'display', 'align-items', 'justify-content'].forEach(prop => {
+            settingsModal.style.removeProperty(prop);
+        });
 
         // Check if welcome message should be shown
         checkAndShowWelcomeMessage();
@@ -480,45 +455,20 @@ export function initializeSettingsModalNavigation() {
     window.addEventListener('resize', () => {
         const navButtons = document.getElementById('settings-navigation-buttons');
         
-        // Update modal positioning on resize if modal is open
+        // Clear any conflicting inline styles on resize
         if (settingsModal && !settingsModal.classList.contains('hidden')) {
+            // Clean modal container styles
+            ['position', 'top', 'left', 'right', 'bottom', 'transform', 'width', 'height', 'margin', 'display', 'align-items', 'justify-content'].forEach(prop => {
+                settingsModal.style.removeProperty(prop);
+            });
+            
             const modalContent = settingsModal.querySelector('.modal-content');
             if (modalContent) {
-                if (window.innerWidth <= 767) {
-                    modalContent.classList.add('mobile-modal');
-                    // Reapply mobile positioning
-                    modalContent.style.position = 'fixed';
-                    modalContent.style.top = '50%';
-                    modalContent.style.left = '50%';
-                    modalContent.style.transform = 'translate(-50%, -50%)';
-                    
-                    // Adjust width based on new screen size
-                    if (window.innerWidth <= 375) {
-                        modalContent.style.width = 'calc(100vw - 16px)';
-                        modalContent.style.maxWidth = 'calc(100vw - 16px)';
-                    } else if (window.innerWidth <= 480) {
-                        modalContent.style.width = '96vw';
-                        modalContent.style.maxWidth = '96vw';
-                    } else {
-                        modalContent.style.width = '95vw';
-                        modalContent.style.maxWidth = '95vw';
-                    }
-                    
-                    modalContent.style.maxHeight = '90vh';
-                    if (window.visualViewport) {
-                        modalContent.style.maxHeight = '90dvh';
-                    }
-                } else {
-                    modalContent.classList.remove('mobile-modal');
-                    // Clear mobile-specific styles for desktop
-                    modalContent.style.removeProperty('position');
-                    modalContent.style.removeProperty('top');
-                    modalContent.style.removeProperty('left');
-                    modalContent.style.removeProperty('transform');
-                    modalContent.style.removeProperty('width');
-                    modalContent.style.removeProperty('max-width');
-                    modalContent.style.removeProperty('max-height');
-                }
+                // Remove any inline styles that might interfere with CSS responsive design
+                ['position', 'top', 'left', 'right', 'bottom', 'transform', 'width', 'max-width', 'height', 'max-height', 'margin'].forEach(prop => {
+                    modalContent.style.removeProperty(prop);
+                });
+                modalContent.classList.remove('mobile-modal');
             }
         }
 

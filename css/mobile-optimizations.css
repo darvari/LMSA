@@ -105,7 +105,6 @@
     
     /* Optimize modals */
     .modal,
-    #settings-modal,
     #character-gallery {
         /* Faster modal animations */
         transition: opacity 0.2s ease-out, visibility 0.2s ease-out !important;
@@ -113,9 +112,14 @@
     }
     
     .modal.show,
-    #settings-modal.show,
     #character-gallery.show {
         transform: none !important;
+    }
+    
+    /* Settings modal gets special handling - don't override its positioning */
+    #settings-modal {
+        /* Only optimize transition speed, preserve positioning */
+        transition: opacity 0.2s ease-out, visibility 0.2s ease-out !important;
     }
     
     /* Simplify character cards */
