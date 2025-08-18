@@ -682,6 +682,10 @@ body.light-theme #active-character-display {
   position: relative;
   z-index: 2;
   /* Ensure button is above input */
+  padding: 0.875rem 0.5rem !important;
+  /* Reduced horizontal padding for narrower button */
+  min-width: 50px !important;
+  /* Reduced minimum width to allow smaller button */
 }
 
 #chat-form #send-button:hover,
@@ -1057,9 +1061,11 @@ body.light-theme .modal-header {
 
   #send-button,
   #stop-button {
-    padding: 0.35rem 0.5rem !important;
+    padding: 0.35rem 0.35rem !important;
     border-radius: 0 1.25rem 1.25rem 0 !important;
     height: 38px !important;
+    min-width: 40px !important;
+    /* Reduced minimum width for mobile */
   }
 
   #send-button i,
