@@ -7687,3 +7687,11 @@ body.light-theme #model-loading-modal .w-20.h-0\.5 {
         font-size: 0.9rem;
     }
 }
+
+/* Saved System Prompts Modal - Larger close button */
+#close-saved-prompts-modal {
+    font-size: 2rem !important;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.5rem;
+}
