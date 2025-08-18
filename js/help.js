@@ -211,6 +211,7 @@ Thank you for your help!
         }
 
         // Tutorial video button event listener
+        /*
         if (tutorialVideoBtn) {
             tutorialVideoBtn.addEventListener('click', () => {
                 // Show confirmation modal before opening YouTube video
@@ -218,6 +219,7 @@ Thank you for your help!
                 showExternalSiteModal(youtubeUrl);
             });
         }
+        */
 
         // Support Articles button event listener
         if (supportArticlesBtn) {

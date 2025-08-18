@@ -8,7 +8,7 @@ const gotItButton = document.getElementById('got-it-whats-new');
 const versionElement = document.getElementById('whats-new-version');
 
 // Local storage keys
-const WHATS_NEW_VERSION = '5.5'; // Updated for Vision Language Model support
+const WHATS_NEW_VERSION = '7.0'; // Updated for Performance Optimization & System Prompts
 
 // Flag to track if the modal has been shown in the current session
 let modalShownInCurrentSession = false;
