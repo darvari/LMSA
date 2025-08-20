@@ -199,8 +199,8 @@ sudo apt install nodejs npm openjdk-11-jdk android-sdk adb
   ```
 2. Create or update the Capacitor project:
   ```bash
-  npm install @capacitor/core @capacitor/cli @capacitor/android
-  npm init -y
+  npm install @capacitor/core @capacitor/cli @capacitor/android #installs some node modules and creates package.json as well as package-lock.json
+  npm init -y #overwrites packages.json with something else
   npx cap init LMSA com.example.lmsa --web-dir www
   mkdir -p www
   cp -r index.html css js icon.png www/
