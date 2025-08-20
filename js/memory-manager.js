@@ -121,42 +121,48 @@ class MemoryManager {
         });
     }
     
-    /**
-     * Perform comprehensive memory cleanup
+        /**
+     * Perform a comprehensive cleanup
      */
     performCleanup() {
-        debugLog('Starting memory cleanup...');
+        // Cache frequently accessed DOM elements
+        const imageElements = Array.from(document.querySelectorAll('img[data-src]'));
         
-        const startTime = Date.now();
-        let cleanupCount = 0;
+        // Clear image blob URLs
+        imageElements.forEach(img => {
+            if (img.src && img.src.startsWith('blob:')) {
+                URL.revokeObjectURL(img.src);
+                img.src = '';
+            }
+        });
         
-        // Run all registered cleanup callbacks
+        // Execute registered cleanup callbacks
         this.cleanupCallbacks.forEach(callback => {
             try {
                 callback();
-                cleanupCount++;
             } catch (error) {
                 debugError('Error in cleanup callback:', error);
             }
         });
         
-        // Clean up file references
-        this.cleanupFileReferences();
-        
-        // Clean up DOM event listeners
-        this.cleanupEventListeners();
-        
-        // Clean up unused CSS
-        this.cleanupUnusedCSS();
-        
-        // Clean up local storage if needed
-        this.cleanupLocalStorage();
+        // Clean up timeouts if the timeout manager is available
+        import('./timeout-manager.js').then(module => {
+            const { timeoutManager } = module;
+            if (timeoutManager) {
+                const stats = timeoutManager.getStats();
+                if (stats.veryOldTimeouts > 0) {
+                    debugLog(`Cleaning up ${stats.veryOldTimeouts} very old timeouts`);
+                    timeoutManager.cleanupExpiredTimeouts();
+                }
+            }
+        }).catch(() => {
+            // Ignore errors if module is not available
+        });
         
         // Force garbage collection if available
         this.forceGarbageCollection();
         
-        const endTime = Date.now();
-        debugLog(`Memory cleanup completed in ${endTime - startTime}ms, ran ${cleanupCount} cleanup routines`);
+        debugLog('Memory cleanup performed');
     }
     
     /**

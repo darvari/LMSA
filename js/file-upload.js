@@ -2,6 +2,7 @@
 import { fileUploadInput as importedFileUploadInput } from './dom-elements.js';
 import { appendMessage } from './ui-manager.js';
 import { memoryManager } from './memory-manager.js';
+import { getAuthHeaders } from './api-service.js';
 
 let uploadedFiles = [];
 let uploadedFileIds = []; // Track uploaded file IDs for API requests
@@ -23,12 +24,24 @@ export async function isVisionModel() {
         
         // Get server connection details
     // Use getServerUrl for endpoint construction
-    // (serverIp/serverPort still used for fallback logic if needed)
     const getServerUrl = window.getServerUrl || (await import('./api-service.js')).getServerUrl;
+    
+    try {
+        // Check server connection elements
+        const serverIpInput = document.getElementById('server-ip');
+        const serverPortInput = document.getElementById('server-port');
         
+        const serverIp = serverIpInput ? serverIpInput.value.trim() : '';
+        const serverPort = serverPortInput ? serverPortInput.value.trim() : '';
+        
+        // If no server info available, use fallback
         if (!serverIp || !serverPort) {
             return fallbackNameBasedDetection();
         }
+    } catch (error) {
+        console.error("Error accessing server info:", error);
+        return fallbackNameBasedDetection();
+    }
 
         // Try to get model information from various LM Studio endpoints
         const modelId = window.currentLoadedModel;
@@ -37,6 +50,7 @@ export async function isVisionModel() {
         try {
             const modelsResponse = await fetch(getServerUrl('/v1/models'), {
                 method: 'GET',
+                headers: getAuthHeaders(),
                 signal: AbortSignal.timeout(3000) // 3 second timeout
             });
 
@@ -78,6 +92,7 @@ export async function isVisionModel() {
                 try {
                     const infoResponse = await fetch(getServerUrl(endpoint), {
                         method: 'GET',
+                        headers: getAuthHeaders(),
                         signal: AbortSignal.timeout(2000)
                     });
 
@@ -256,7 +271,8 @@ async function testVisionCapability(serverIp, serverPort, modelId) {
     const response = await fetch(getServerUrl('/v1/chat/completions'), {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                ...getAuthHeaders()
             },
             body: JSON.stringify(testRequest),
             signal: AbortSignal.timeout(5000) // 5 second timeout

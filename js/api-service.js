@@ -7,6 +7,7 @@ export function getServerUrl(endpoint = '') {
     const serverIpInput = document.getElementById('server-ip');
     const serverPortInput = document.getElementById('server-port');
     const sslSwitch = document.getElementById('server-ssl-switch');
+    
     let host = serverIpInput?.value.trim() || '';
     let port = serverPortInput?.value.trim() || '';
     let useSSL = sslSwitch && sslSwitch.checked;
@@ -30,7 +31,7 @@ export function getServerUrl(endpoint = '') {
 
     if (parsedSSL && !port) port = '443';
     if (!parsedSSL && !port) port = '1234';
-
+    
     // Omit port for standard protocols
     let omitPort = (parsedSSL && port === '443') || (!parsedSSL && port === '80');
     let url = `${parsedSSL ? 'https' : 'http'}://${parsedHost}`;
@@ -40,44 +41,149 @@ export function getServerUrl(endpoint = '') {
 }
 // Test server response utility
 export function testServerResponse() {
-    const serverIpInput = document.getElementById('server-ip');
-    const serverPortInput = document.getElementById('server-port');
-    const sslSwitch = document.getElementById('server-ssl-switch');
     const resultDiv = document.getElementById('test-server-result');
-    if (!serverIpInput || !serverPortInput || !resultDiv) return;
+    if (!resultDiv) return;
 
-    let host = serverIpInput.value.trim();
-    let port = serverPortInput.value.trim();
-    let useSSL = sslSwitch && sslSwitch.checked;
-
-    // If user enters a full URL, parse protocol and host
-    let parsedHost = host;
-    let parsedSSL = useSSL;
-    if (/^https?:\/\//i.test(host)) {
-        const urlObj = new URL(host);
-        parsedHost = urlObj.hostname;
-        parsedSSL = urlObj.protocol === 'https:';
-        if (!port && urlObj.port) {
-            port = urlObj.port;
-        }
-    }
-    if (parsedSSL && !port) port = '443';
-    if (!parsedSSL && !port) port = '1234';
-
-    const url = `${parsedSSL ? 'https' : 'http'}://${parsedHost}:${port}/v1/models`;
     resultDiv.textContent = 'Testing...';
-    fetch(url, { method: 'GET' })
-        .then(response => {
+    
+    // Use our getServerUrl function for the URL and getAuthHeaders for authentication
+    const url = getServerUrl('/v1/models');
+    const headers = getAuthHeaders();
+    
+    // Log auth information for debugging (safely)
+    const useAuthSwitch = document.getElementById('use-auth-switch');
+    const authUsername = document.getElementById('auth-username');
+    const isAuthEnabled = useAuthSwitch && useAuthSwitch.checked;
+    const hasUsername = authUsername && authUsername.value.trim().length > 0;
+    
+    console.log('Auth Debug:', {
+        authEnabled: isAuthEnabled,
+        hasUsername: hasUsername,
+        hasAuthHeader: !!headers['Authorization'],
+        url: url
+    });
+    
+    fetch(url, { 
+        method: 'GET',
+        headers: headers
+    })
+        .then(async response => {
+            // For debugging - check what the server responds with
+            let responseBody = '';
+            try {
+                // Try to get response text for more info about the error
+                responseBody = await response.text();
+            } catch (e) {
+                responseBody = '(unable to read response body)';
+            }
+            
             if (response.ok) {
                 resultDiv.textContent = `✅ Server responded with status 200 OK.`;
+                resultDiv.classList.remove('error-message');
+                resultDiv.classList.add('success-message');
+                console.log('Auth Success:', responseBody.substring(0, 100) + '...');
+            } else if (response.status === 401) {
+                // Check if this is an nginx auth failure
+                const isNginx = responseBody.includes('nginx') || 
+                               (response.headers && response.headers.get('server') && 
+                                response.headers.get('server').includes('nginx'));
+                
+                if (isNginx) {
+                    resultDiv.innerHTML = `❌ Nginx authentication failed. <br>
+                        <span class="text-xs">This is likely because you're using nginx as a reverse proxy.<br>
+                        Make sure your nginx configuration includes:</span>
+                        <pre class="text-xs mt-1 p-1 bg-gray-700 rounded">proxy_set_header Authorization $http_authorization;
+proxy_pass_header Authorization;</pre>`;
+                } else {
+                    resultDiv.textContent = `❌ Authentication failed (status 401). Check your username and password.`;
+                }
+                
+                resultDiv.classList.remove('success-message');
+                resultDiv.classList.add('error-message');
+                
+                // Log details for debugging
+                console.error('Auth Failure Details:', {
+                    status: response.status,
+                    isNginx: isNginx,
+                    headers: Object.fromEntries(response.headers.entries()),
+                    responseText: responseBody
+                });
+                
+                // Add visual indicator by temporarily highlighting the auth fields
+                highlightAuthFields();
             } else {
                 resultDiv.textContent = `❌ Server responded with status ${response.status}.`;
+                resultDiv.classList.remove('success-message');
+                resultDiv.classList.add('error-message');
+                console.error('Server Error:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    responseText: responseBody
+                });
             }
         })
         .catch(err => {
             resultDiv.textContent = `❌ Error: ${err.message}`;
+            resultDiv.classList.remove('success-message');
+            resultDiv.classList.add('error-message');
+            console.error('Fetch Error:', err);
         });
 }
+/**
+ * Briefly highlight auth fields to indicate authentication error
+ */
+function highlightAuthFields() {
+    const authFields = document.querySelectorAll('#auth-username, #auth-password');
+    const useAuthSwitch = document.getElementById('use-auth-switch');
+    const authErrorMessage = document.getElementById('auth-error-message');
+    
+    // If auth is enabled, highlight the fields
+    if (useAuthSwitch && useAuthSwitch.checked) {
+        // Show detailed error message if possible
+        if (authErrorMessage) {
+            authErrorMessage.textContent = 'Authentication failed. Check your username and password are correct and that the server requires authentication.';
+            authErrorMessage.classList.remove('hidden');
+        }
+        
+        // Highlight the fields
+        authFields.forEach(field => {
+            field.classList.add('auth-error');
+            setTimeout(() => {
+                field.classList.remove('auth-error');
+            }, 2000); // Remove highlight after 2 seconds
+        });
+    }
+}
+
+/**
+ * Decode and validate a Basic Auth header for debugging
+ * @param {string} authHeader - The Authorization header value 
+ * @returns {Object} - The decoded credentials or error
+ */
+function debugDecodeBasicAuth(authHeader) {
+    try {
+        if (!authHeader || !authHeader.startsWith('Basic ')) {
+            return { valid: false, error: 'Not a Basic Auth header' };
+        }
+        
+        const base64Credentials = authHeader.split(' ')[1];
+        const decodedCredentials = atob(base64Credentials);
+        const [username, password] = decodedCredentials.split(':');
+        
+        return {
+            valid: true,
+            username: username,
+            hasPassword: !!password,
+            passwordLength: password ? password.length : 0
+        };
+    } catch (error) {
+        return {
+            valid: false,
+            error: error.message
+        };
+    }
+}
+
 // Attach test button event listener on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     const testBtn = document.getElementById('test-server-btn');
@@ -88,6 +194,67 @@ document.addEventListener('DOMContentLoaded', () => {
 // API Service for handling server communication
 import { serverIpInput, serverPortInput, loadedModelDisplay } from './dom-elements.js';
 import { getLightThemeEnabled } from './settings-manager.js';
+
+/**
+ * Get authentication headers if authentication is enabled
+ * @returns {Object} - Headers object with Authorization header if authentication is enabled
+ */
+export function getAuthHeaders() {
+    const useAuthSwitch = document.getElementById('use-auth-switch');
+    const authUsername = document.getElementById('auth-username');
+    const authPassword = document.getElementById('auth-password');
+    
+    // Create base headers - always include Content-Type
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+    
+    try {
+        // Add authentication if enabled and credentials are provided
+        if (useAuthSwitch && useAuthSwitch.checked && 
+            authUsername && authUsername.value.trim() && 
+            authPassword && authPassword.value.trim()) {
+            
+            // Get the raw values first
+            const username = authUsername.value.trim();
+            const password = authPassword.value.trim();
+            
+            try {
+                // Format specifically for nginx which can be picky about Basic Auth format
+                // Use double encoding approach to handle special characters
+                const credentials = btoa(unescape(encodeURIComponent(`${username}:${password}`)));
+                headers['Authorization'] = `Basic ${credentials}`;
+                
+                // Log for debugging
+                console.log('Auth headers created for nginx', {
+                   hasUsername: !!username,
+                   hasPassword: !!password,
+                   headerSet: !!headers['Authorization']
+                });
+            } catch (encodeError) {
+                // Fallback to simpler encoding if the first method fails
+                console.error('Error in primary encoding method, trying fallback', encodeError);
+                const simpleCredentials = btoa(`${username}:${password}`);
+                headers['Authorization'] = `Basic ${simpleCredentials}`;
+            }
+        } else {
+            // Debug why authentication is not being added
+            if (!useAuthSwitch || !useAuthSwitch.checked) {
+                console.log('Auth not enabled');
+            } else if (!authUsername || !authUsername.value.trim()) {
+                console.log('Missing username');
+            } else if (!authPassword || !authPassword.value.trim()) {
+                console.log('Missing password');
+            }
+        }
+    } catch (error) {
+        console.error('Error creating auth headers:', error);
+        // Create fallback headers in case of encoding error
+        headers['X-Auth-Error'] = 'Failed to encode credentials';
+    }
+    
+    return headers;
+}
 
 let API_URL = '';
 let availableModels = [];
@@ -148,9 +315,24 @@ export function updateServerUrl() {
         url = `${parsedSSL ? 'https' : 'http'}://${parsedHost}/v1/chat/completions`;
     }
     API_URL = url;
+    
+    // Save server settings
     localStorage.setItem('serverIp', parsedHost);
     localStorage.setItem('serverPort', port);
     localStorage.setItem('serverSSL', parsedSSL ? 'true' : 'false');
+    
+    // Save authentication settings if enabled
+    const useAuthSwitch = document.getElementById('use-auth-switch');
+    const authUsername = document.getElementById('auth-username');
+    const authPassword = document.getElementById('auth-password');
+    
+    if (useAuthSwitch && useAuthSwitch.checked && authUsername && authPassword) {
+        localStorage.setItem('auth-username', authUsername.value);
+        // Don't store password in plain text - in a real app you'd want to encrypt this
+        // For simplicity, we'll store it base64 encoded (this is NOT secure, just obfuscated)
+        localStorage.setItem('auth-password', btoa(authPassword.value));
+    }
+    
     fetchAvailableModels();
 }
 
@@ -217,17 +399,43 @@ export async function fetchAvailableModels() {
 
         // Add a timeout to the fetch request to prevent long waits
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        
+        // Import and use the timeout manager for better memory management
+        let timeoutHandle;
+        try {
+            // Dynamic import to avoid circular dependencies
+            const { setManagedTimeout } = await import('./timeout-manager.js');
+            timeoutHandle = setManagedTimeout(() => controller.abort(), 5000, 'fetch-models-timeout');
+        } catch (e) {
+            // Fallback to regular setTimeout if the timeout manager isn't available
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            timeoutHandle = { clear: () => clearTimeout(timeoutId) };
+        }
 
         try {
             const modelsResponse = await fetch(modelsUrl, {
-                signal: controller.signal
+                signal: controller.signal,
+                headers: getAuthHeaders()
             });
 
-            clearTimeout(timeoutId);
+            // Clear the timeout using the manager or the fallback
+            timeoutHandle.clear();
 
             if (!modelsResponse.ok) {
                 console.error('Failed to fetch models, server returned:', modelsResponse.status, modelsResponse.statusText);
+                
+                // Check specifically for authentication failures
+                if (modelsResponse.status === 401) {
+                    console.error('Authentication failed when fetching models');
+                    // If we have a UI element to show auth errors, update it
+                    const authErrorElement = document.getElementById('auth-error-message');
+                    if (authErrorElement) {
+                        authErrorElement.textContent = 'Authentication failed. Please check your username and password.';
+                        authErrorElement.classList.remove('hidden');
+                        highlightAuthFields();
+                    }
+                }
+                
                 availableModels = []; // Ensure availableModels is empty
                 if (loadedModelDisplay) {
                     loadedModelDisplay.classList.add('hidden');
@@ -275,20 +483,37 @@ export async function fetchAvailableModels() {
                         '/v1/models/current'
                     ];
 
+                    // Log once that we're checking model info endpoints
+                    console.log('Checking alternative model info endpoints (some 400 errors are expected and can be ignored)');
+                    
                     for (const endpoint of endpoints) {
                         try {
                             const controller = new AbortController();
-                            const timeoutId = setTimeout(() => controller.abort(), 2000); // shorter timeout for info endpoints
+                            
+                            // Use the timeout manager for better memory management
+                            let timeoutHandle;
+                            try {
+                                // Dynamic import to avoid circular dependencies
+                                const { setManagedTimeout } = await import('./timeout-manager.js');
+                                timeoutHandle = setManagedTimeout(() => controller.abort(), 2000, 'model-info-timeout');
+                            } catch (e) {
+                                // Fallback to regular setTimeout if the timeout manager isn't available
+                                const timeoutId = setTimeout(() => controller.abort(), 2000);
+                                timeoutHandle = { clear: () => clearTimeout(timeoutId) };
+                            }
 
+                            // Use fetch with a catch handler to silently handle HTTP errors
                             const modelInfoResponse = await fetch(getServerUrl(endpoint), {
                                 method: 'GET',
-                                signal: controller.signal
+                                signal: controller.signal,
+                                headers: getAuthHeaders()
                             }).catch(() => {
-                                // Silently catch network errors
+                                // Silently catch network errors and HTTP errors
                                 return { ok: false };
                             });
 
-                            clearTimeout(timeoutId);
+                            // Clear the timeout using the manager or the fallback
+                            timeoutHandle.clear();
 
                             if (modelInfoResponse.ok) {
                                 const modelInfo = await modelInfoResponse.json();
@@ -319,11 +544,23 @@ export async function fetchAvailableModels() {
             if (!loadedModelInfo && modelsList.length > 0) {
                 try {
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 3000);
+                    
+                    // Use the timeout manager for better memory management
+                    let timeoutHandle;
+                    try {
+                        // Dynamic import to avoid circular dependencies
+                        const { setManagedTimeout } = await import('./timeout-manager.js');
+                        timeoutHandle = setManagedTimeout(() => controller.abort(), 3000, 'chat-test-timeout');
+                    } catch (e) {
+                        // Fallback to regular setTimeout if the timeout manager isn't available
+                        const timeoutId = setTimeout(() => controller.abort(), 3000);
+                        timeoutHandle = { clear: () => clearTimeout(timeoutId) };
+                    }
 
                     const chatResponse = await fetch(getServerUrl('/v1/chat/completions'), {
                         method: 'POST',
                         headers: {
+                            ...getAuthHeaders(),
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
@@ -339,7 +576,7 @@ export async function fetchAvailableModels() {
                         return { ok: false };
                     });
 
-                    clearTimeout(timeoutId);
+                    timeoutHandle.clear();
 
                     if (chatResponse.ok) {
                         const result = await chatResponse.json();
@@ -524,21 +761,33 @@ export async function isServerRunning() {
 
         // Add a timeout to the fetch request to prevent long waits
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        
+        // Use the timeout manager for better memory management
+        let timeoutHandle;
+        try {
+            // Dynamic import to avoid circular dependencies
+            const { setManagedTimeout } = await import('./timeout-manager.js');
+            timeoutHandle = setManagedTimeout(() => controller.abort(), 5000, 'server-check-timeout');
+        } catch (e) {
+            // Fallback to regular setTimeout if the timeout manager isn't available
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            timeoutHandle = { clear: () => clearTimeout(timeoutId) };
+        }
 
         try {
+            // Get authentication headers properly
+            const authHeaders = getAuthHeaders();
+            
             const response = await fetch(modelsUrl, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: authHeaders,  // Use the exact same headers format as other requests
                 signal: controller.signal
             });
 
-            clearTimeout(timeoutId);
+            timeoutHandle.clear();
             return response.ok;
         } catch (fetchError) {
-            clearTimeout(timeoutId);
+            timeoutHandle.clear();
             console.error('Error checking server status:', fetchError);
             return false;
         }
@@ -563,13 +812,27 @@ async function tryEndpoints(ip, port, operation, endpoints, requestData = null) 
             console.log(`Trying ${operation} with endpoint: ${endpoint.path}`);
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+            
+            // Use the timeout manager for better memory management
+            let timeoutHandle;
+            try {
+                // Dynamic import to avoid circular dependencies
+                const { setManagedTimeout } = await import('./timeout-manager.js');
+                timeoutHandle = setManagedTimeout(() => controller.abort(), 5000, 'endpoint-try-timeout');
+            } catch (e) {
+                // Fallback to regular setTimeout if the timeout manager isn't available
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                timeoutHandle = { clear: () => clearTimeout(timeoutId) };
+            }
 
+            // Get auth headers with same format as other requests
+            const authHeaders = getAuthHeaders();
+            
+            console.log(`Auth headers for ${operation}:`, Object.keys(authHeaders));
+            
             const options = {
                 method: endpoint.method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: authHeaders,  // Use the exact same headers as other requests
                 signal: controller.signal
             };
 
@@ -584,7 +847,7 @@ async function tryEndpoints(ip, port, operation, endpoints, requestData = null) 
                     return { ok: false };
                 });
 
-            clearTimeout(timeoutId);
+            timeoutHandle.clear();
 
             if (response.ok) {
                 console.log(`${operation} successful with endpoint: ${endpoint.path}`);
@@ -616,11 +879,12 @@ async function waitForModelLoad(ip, port, modelId, maxAttempts = 10) {
             console.log(`Checking if model is loaded (attempt ${attempt + 1}/${maxAttempts})...`);
 
             // Make a simple test completion to see if the model responds
+            const authHeaders = getAuthHeaders();
+            console.log(`Auth headers for model verification:`, Object.keys(authHeaders));
+            
             const testResponse = await fetch(getServerUrl('/v1/chat/completions'), {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: authHeaders,
                 body: JSON.stringify({
                     model: modelId,
                     messages: [
@@ -673,6 +937,7 @@ async function forceLoadModel(ip, port, modelId) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                ...getAuthHeaders()
             },
             body: JSON.stringify({
                 model: modelId,
@@ -815,7 +1080,8 @@ export async function ejectModel() {
                 const timeoutId = setTimeout(() => controller.abort(), 3000);
 
                 const modelsResponse = await fetch(getServerUrl('/v1/models'), {
-                    signal: controller.signal
+                    signal: controller.signal,
+                    headers: getAuthHeaders()
                 }).catch(() => {
                     return { ok: false };
                 });
@@ -932,16 +1198,70 @@ export function getAvailableModels() {
 export function loadServerSettings() {
     const savedIp = localStorage.getItem('serverIp');
     const savedPort = localStorage.getItem('serverPort');
+    const savedSSL = localStorage.getItem('serverSSL') === 'true';
+    const savedUseAuth = localStorage.getItem('use-auth') === 'true';
+    const savedAuthUsername = localStorage.getItem('auth-username');
+    const savedAuthPassword = localStorage.getItem('auth-password');
+
+    console.log('Loading server settings, auth enabled:', savedUseAuth);
 
     if (serverIpInput && serverPortInput) {
         if (savedIp) serverIpInput.value = savedIp;
         if (savedPort) serverPortInput.value = savedPort;
+        
+        // Restore SSL setting
+        const sslSwitch = document.getElementById('server-ssl-switch');
+        if (sslSwitch) sslSwitch.checked = savedSSL;
+        
+        // Restore authentication settings
+        const useAuthSwitch = document.getElementById('use-auth-switch');
+        const authUsername = document.getElementById('auth-username');
+        const authPassword = document.getElementById('auth-password');
+        const authFields = document.getElementById('auth-fields');
+        
+        if (useAuthSwitch && authUsername && authPassword && authFields) {
+            useAuthSwitch.checked = savedUseAuth;
+            authFields.classList.toggle('hidden', !savedUseAuth);
+            
+            if (savedAuthUsername) authUsername.value = savedAuthUsername;
+            if (savedAuthPassword) {
+                try {
+                    // Decode the base64 password
+                    authPassword.value = atob(savedAuthPassword);
+                    console.log('Restored password from localStorage');
+                } catch (e) {
+                    console.error("Failed to decode saved password", e);
+                }
+            }
+            
+            // Make sure the authentication settings are properly saved
+            if (savedUseAuth) {
+                localStorage.setItem('use-auth', 'true');
+                
+                // Make sure the auth elements have the correct values before we try to use them
+                const testAuthHeaders = getAuthHeaders();
+                console.log('Test auth headers after loading settings:', 
+                    Object.keys(testAuthHeaders).includes('Authorization') ? 'Auth header present' : 'No auth header');
+            }
+        }
 
         if (savedIp && savedPort) {
             API_URL = getServerUrl('/v1/chat/completions');
-            // Fetch models after setting the API URL, but set a flag to indicate this is the initial load
+            
+            // Only fetch models automatically if authentication is NOT required
+            // or if we already have authentication credentials
+            const hasValidAuth = savedUseAuth && savedAuthUsername && savedAuthPassword;
             window.isInitialStartup = true;
-            setTimeout(() => fetchAvailableModels(), 500);
+            
+            if (!savedUseAuth || hasValidAuth) {
+                // Only fetch models if no authentication is needed or we have credentials
+                console.log("Auto-fetching models with existing credentials");
+                setTimeout(() => fetchAvailableModels(), 500);
+            } else {
+                console.log("Authentication required but no credentials saved, skipping auto-fetch of models");
+                // Don't fetch models until the user has entered credentials
+            }
+            
             // Reset the flag after a delay to allow for normal operation later
             setTimeout(() => {
                 window.isInitialStartup = false;

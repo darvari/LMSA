@@ -269,6 +269,16 @@ class MemoryLeakDetector {
         // Clean up completed timeouts (they auto-remove, but check for consistency)
         const initialTimeoutsSize = this.timeouts.size;
         
+        // Import the timeout manager if available
+        import('./timeout-manager.js').then(module => {
+            const { timeoutManager } = module;
+            if (timeoutManager) {
+                timeoutManager.cleanupExpiredTimeouts();
+            }
+        }).catch(e => {
+            // Ignore errors if the module isn't available
+        });
+        
         // Clean up disconnected observers
         this.observers.forEach(observer => {
             try {

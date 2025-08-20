@@ -621,6 +621,137 @@ function initializeManualInputFocus() {
         // Find IP and Port input fields specifically
         const serverIpInput = document.getElementById('server-ip');
         const serverPortInput = document.getElementById('server-port');
+        
+        // Add auth toggle handling
+        const useAuthSwitch = document.getElementById('use-auth-switch');
+        const authFields = document.getElementById('auth-fields');
+        const authUsername = document.getElementById('auth-username');
+        const authPassword = document.getElementById('auth-password');
+        const authErrorMessage = document.getElementById('auth-error-message');
+        
+        if (useAuthSwitch && authFields && !useAuthSwitch.dataset.handlerAttached) {
+            // Set initial state based on stored preference
+            const useAuth = localStorage.getItem('use-auth') === 'true';
+            useAuthSwitch.checked = useAuth;
+            authFields.classList.toggle('hidden', !useAuth);
+            
+            // Add change event listener
+            useAuthSwitch.addEventListener('change', () => {
+                const isEnabled = useAuthSwitch.checked;
+                
+                // Toggle auth fields visibility
+                authFields.classList.toggle('hidden', !isEnabled);
+                
+                // Save to localStorage
+                localStorage.setItem('use-auth', isEnabled ? 'true' : 'false');
+                
+                // If turning off auth, clear credentials from localStorage to prevent them being used
+                if (!isEnabled) {
+                    localStorage.removeItem('auth-username');
+                    localStorage.removeItem('auth-password');
+                    
+                    // Clear input fields
+                    if (authUsername) authUsername.value = '';
+                    if (authPassword) authPassword.value = '';
+                } else if (isEnabled && authUsername && authPassword) {
+                    // If turning on auth, immediately save current values if they exist
+                    if (authUsername.value) localStorage.setItem('auth-username', authUsername.value);
+                    if (authPassword.value) localStorage.setItem('auth-password', btoa(authPassword.value));
+                }
+                
+                // Clear any auth error messages when toggling
+                if (authErrorMessage) {
+                    authErrorMessage.textContent = '';
+                    authErrorMessage.classList.add('hidden');
+                }
+                
+                console.log('Auth enabled:', isEnabled);
+            });
+            
+            // Mark as attached
+            useAuthSwitch.dataset.handlerAttached = 'true';
+            
+            // Also add input handlers to clear error message when typing
+            if (authUsername && authPassword && authErrorMessage) {
+                // Clear errors when credentials change
+                ['input', 'change'].forEach(event => {
+                    authUsername.addEventListener(event, () => {
+                        // Save immediately to localStorage
+                        if (useAuthSwitch.checked && authUsername.value) {
+                            localStorage.setItem('auth-username', authUsername.value);
+                        }
+                        
+                        // Clear any visible errors
+                        authErrorMessage.textContent = '';
+                        authErrorMessage.classList.add('hidden');
+                        authUsername.classList.remove('auth-error');
+                        authPassword.classList.remove('auth-error');
+                    });
+                    
+                    authPassword.addEventListener(event, () => {
+                        // Save immediately to localStorage, but encoded
+                        if (useAuthSwitch.checked && authPassword.value) {
+                            localStorage.setItem('auth-password', btoa(authPassword.value));
+                        }
+                        
+                        // Clear any visible errors
+                        authErrorMessage.textContent = '';
+                        authErrorMessage.classList.add('hidden');
+                        authUsername.classList.remove('auth-error');
+                        authPassword.classList.remove('auth-error');
+                    });
+                });
+            }
+        }
+        
+        // Add input handlers for auth fields to clear error messages when modified
+        if (authUsername && authPassword && !authUsername.dataset.handlerAttached) {
+            const clearAuthError = () => {
+                if (authErrorMessage) {
+                    authErrorMessage.textContent = '';
+                    authErrorMessage.classList.add('hidden');
+                }
+                
+                // Remove error highlight
+                authUsername.classList.remove('auth-error');
+                authPassword.classList.remove('auth-error');
+            };
+            
+            authUsername.addEventListener('input', clearAuthError);
+            authPassword.addEventListener('input', clearAuthError);
+            
+            // Mark as attached
+            authUsername.dataset.handlerAttached = 'true';
+            authPassword.dataset.handlerAttached = 'true';
+        }
+
+        // Add password toggle functionality
+        const passwordToggle = document.getElementById('password-toggle');
+        if (passwordToggle && authPassword && !passwordToggle.dataset.handlerAttached) {
+            // Add click event to toggle password visibility
+            passwordToggle.addEventListener('click', () => {
+                const isVisible = authPassword.type === 'text';
+                
+                // Toggle password field type
+                authPassword.type = isVisible ? 'password' : 'text';
+                
+                // Toggle icon
+                const toggleIcon = document.getElementById('password-toggle-icon');
+                if (toggleIcon) {
+                    toggleIcon.className = isVisible ? 'fas fa-eye' : 'fas fa-eye-slash';
+                }
+                
+                // Add/remove visible class for styling
+                if (isVisible) {
+                    passwordToggle.parentNode.classList.remove('password-visible');
+                } else {
+                    passwordToggle.parentNode.classList.add('password-visible');
+                }
+            });
+            
+            // Mark as attached
+            passwordToggle.dataset.handlerAttached = 'true';
+        }
 
         // Find the containers that need to be hidden/shown
         const connectionLabelContainer = document.querySelector('#settings-step-connection label.block.text-sm.font-medium');
@@ -676,15 +807,16 @@ function initializeManualInputFocus() {
                 serverIpInput.dataset.ipPortFocusHandlerAttached = 'true';
                 serverPortInput.dataset.ipPortFocusHandlerAttached = 'true';
 
-                // Function to hide containers
+                // Function to hide containers - REMOVED to keep label visible at all times
                 const hideContainers = () => {
-                    connectionLabelContainer.style.display = 'none';
+                    // Only hide the URL info, keep the label visible
+                    // connectionLabelContainer.style.display = 'none';
                     urlInfoContainer.style.display = 'none';
                 };
 
                 // Function to show containers
                 const showContainers = () => {
-                    connectionLabelContainer.style.display = '';
+                    // connectionLabelContainer.style.display = '';
                     urlInfoContainer.style.display = '';
                 };
 
@@ -730,7 +862,7 @@ function initializeManualInputFocus() {
                         return;
                     }
 
-                    // Only show containers if the other input is not focused
+                    // Only show URL info if the other input is not focused
                     if (document.activeElement !== serverPortInput) {
                         showContainers();
                     }
@@ -745,7 +877,7 @@ function initializeManualInputFocus() {
                         return;
                     }
 
-                    // Only show containers if the other input is not focused
+                    // Only show URL info if the other input is not focused
                     if (document.activeElement !== serverIpInput) {
                         showContainers();
                     }
@@ -756,25 +888,27 @@ function initializeManualInputFocus() {
                 if (closeSettingsButton) {
                     // Add mousedown event listener to ensure it captures the event before blur
                     closeSettingsButton.addEventListener('mousedown', function(e) {
-                        // If either input is focused, prevent the containers from showing
+                        // If either input is focused, prevent the URL info from showing
+                        // (but keep the label visible)
                         if (document.activeElement === serverIpInput || document.activeElement === serverPortInput) {
                             // Set a flag to indicate we're handling a button click
                             serverIpInput.dataset.buttonClicked = 'true';
                             serverPortInput.dataset.buttonClicked = 'true';
 
-                            // Don't show containers - they'll be shown when the modal is reopened
+                            // Don't show URL info - it'll be shown when the modal is reopened
                         }
                     });
 
                     // Also handle touchstart for mobile devices
                     closeSettingsButton.addEventListener('touchstart', function(e) {
-                        // If either input is focused, prevent the containers from showing
+                        // If either input is focused, prevent the URL info from showing
+                        // (but keep the label visible)
                         if (document.activeElement === serverIpInput || document.activeElement === serverPortInput) {
                             // Set a flag to indicate we're handling a button click
                             serverIpInput.dataset.buttonClicked = 'true';
                             serverPortInput.dataset.buttonClicked = 'true';
 
-                            // Don't show containers - they'll be shown when the modal is reopened
+                            // Don't show URL info - it'll be shown when the modal is reopened
                         }
                     });
 
@@ -1355,4 +1489,99 @@ export function initializeSettingsModal() {
 
     // Initialize the clear system prompt modal
     initializeClearSystemPromptModal();
+    
+    // Add debug auth button handler
+    const debugAuthBtn = document.getElementById('debug-auth-btn');
+    if (debugAuthBtn) {
+        debugAuthBtn.addEventListener('click', function() {
+            const useAuthSwitch = document.getElementById('use-auth-switch');
+            const authUsername = document.getElementById('auth-username');
+            const authPassword = document.getElementById('auth-password');
+            const authErrorMessage = document.getElementById('auth-error-message');
+            
+            // Show debug information
+            let debugInfo = '';
+            
+            if (useAuthSwitch && authUsername && authPassword) {
+                // Authentication state
+                const authEnabled = useAuthSwitch.checked;
+                const username = authUsername.value.trim();
+                const password = authPassword.value.trim();
+                
+                debugInfo += `Auth enabled: ${authEnabled ? 'Yes' : 'No'}<br>`;
+                debugInfo += `Username provided: ${username ? 'Yes' : 'No'}<br>`;
+                debugInfo += `Password provided: ${password ? 'Yes' : 'No'}<br>`;
+                
+                // Test encoding
+                if (username && password) {
+                    try {
+                        const credentials = btoa(`${username}:${password}`);
+                        const authHeader = `Basic ${credentials}`;
+                        
+                        debugInfo += `<br>Generated Auth Header: <code>Authorization: ${authHeader}</code><br>`;
+                        debugInfo += `<br>This header will be sent with all API requests.<br>`;
+                        debugInfo += `<br><strong>Make sure your LM Studio server is configured to accept HTTP Basic Authentication.</strong><br>`;
+                        
+                        // Add nginx-specific instructions if this looks like an nginx error
+                        const testResult = document.getElementById('test-server-result');
+                        if (testResult && testResult.textContent.includes('nginx')) {
+                            debugInfo += `<br><strong>For Nginx:</strong> Add these to your server block:<br>
+                                <pre class="bg-gray-700 p-1 rounded mt-1 text-xs">proxy_set_header Authorization $http_authorization;
+proxy_pass_header Authorization;</pre>`;
+                        }
+                    } catch (e) {
+                        debugInfo += `<br>Error generating auth header: ${e.message}<br>`;
+                    }
+                }
+            }
+            
+            // Display debug info in the error message area
+            if (authErrorMessage) {
+                authErrorMessage.innerHTML = debugInfo;
+                authErrorMessage.classList.remove('hidden');
+                
+                // Style it as info rather than error
+                authErrorMessage.classList.remove('text-red-500');
+                authErrorMessage.classList.add('text-blue-400');
+            }
+        });
+    }
+    
+    // Add fetch models button handler
+    const fetchModelsBtn = document.getElementById('fetch-models-btn');
+    if (fetchModelsBtn) {
+        fetchModelsBtn.addEventListener('click', function() {
+            const authErrorMessage = document.getElementById('auth-error-message');
+            
+            // Clear previous messages
+            if (authErrorMessage) {
+                authErrorMessage.textContent = "Fetching models with current authentication...";
+                authErrorMessage.classList.remove('hidden');
+                authErrorMessage.classList.remove('text-red-500');
+                authErrorMessage.classList.remove('text-blue-400');
+                authErrorMessage.classList.add('text-yellow-400');
+            }
+            
+            // Import and call fetchAvailableModels
+            import('./api-service.js').then(module => {
+                module.fetchAvailableModels()
+                    .then(models => {
+                        if (authErrorMessage) {
+                            authErrorMessage.textContent = `Successfully fetched ${models.length} models!`;
+                            authErrorMessage.classList.remove('text-red-500');
+                            authErrorMessage.classList.remove('text-yellow-400');
+                            authErrorMessage.classList.add('text-green-400');
+                        }
+                    })
+                    .catch(err => {
+                        if (authErrorMessage) {
+                            authErrorMessage.textContent = `Failed to fetch models: ${err.message}`;
+                            authErrorMessage.classList.remove('text-blue-400');
+                            authErrorMessage.classList.remove('text-yellow-400');
+                            authErrorMessage.classList.add('text-red-500');
+                        }
+                    });
+            });
+        });
+    }
 }

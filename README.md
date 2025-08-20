@@ -33,6 +33,10 @@ This fork includes significant improvements to enable secure remote access to LM
 - **Smart URL Construction**: Completely refactored API calls to use a centralized `getServerUrl()` function, ensuring consistent protocol and port handling across all requests
 - **Domain Name Support**: Added support for domain names in addition to IP addresses
 - **Automatic Protocol Detection**: The app now detects if a URL includes protocols (http/https) and adjusts settings accordingly
+- **Authentication Support**: Added optional username/password authentication for secure remote access to LM Studio servers
+  - Can be toggled on/off for both remote and local connections
+  - Credentials are stored securely in localStorage
+  - Multiple account support with different servers
 - **Smart Port Handling**: 
   - Ports are omitted for standard protocols (port 80 for HTTP, port 443 for HTTPS) to prevent browser redirect issues
   - Default port 443 is automatically used when SSL is enabled
@@ -114,6 +118,8 @@ The project is now community-driven and open source. Development efforts are foc
 ### Connection & Configuration
 - **Simple Connection** - Connect to your LM Studio server with just an IP address and port
 - **Advanced Customization** - Adjust temperature, system prompts, and other model parameters directly from your phone
+- **Secure Authentication** - Optional username/password authentication for remote server access
+- **Multiple Account Support** - Save different credentials for different server connections
 
 ## 💻 How It Works
 1. Start LM Studio on your computer and load your favorite language model (including vision language models)
@@ -254,18 +260,62 @@ npm install @capacitor/core @capacitor/cli @capacitor/android
 
 ## 🌐 Remote Access & Nginx Configuration
 
-To enable secure remote access and resolve CORS issues, use the following Nginx config (requires the [ngx_headers_more](https://github.com/openresty/headers-more-nginx-module) module):
+To enable secure remote access with HTTPS and Basic Authentication while resolving CORS issues, follow these steps:
+
+### Setting Up Nginx with SSL and Basic Authentication
+
+1. **Install Nginx and the headers-more module**:
+   ```bash
+   # Ubuntu/Debian
+   sudo apt update
+   sudo apt install nginx apache2-utils
+   sudo apt install libnginx-mod-http-headers-more-filter  # Headers-more module
+   
+   # For CentOS/RHEL, use EPEL repository
+   sudo yum install nginx nginx-mod-http-more
+   sudo yum install httpd-tools  # For htpasswd utility
+   ```
+
+2. **Create a password file for authentication**:
+   ```bash
+   # Create a new password file (replace 'username' with your desired username)
+   sudo htpasswd -c /etc/nginx/.htpasswd username
+   
+   # Add additional users (omit -c flag)
+   sudo htpasswd /etc/nginx/.htpasswd another_user
+   ```
+
+3. **Create SSL certificates** (or use Let's Encrypt):
+   ```bash
+   # Self-signed certificate for testing
+   sudo mkdir -p /etc/nginx/ssl
+   sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+     -keyout /etc/nginx/ssl/your.domain.com.key \
+     -out /etc/nginx/ssl/your.domain.com.crt
+   ```
+
+4. **Configure Nginx**:
+   Create a configuration file at `/etc/nginx/sites-available/lmstudio` with the following content:
 
 ```nginx
 server {
   listen 443 ssl;
-  server_name your.domain.com;
+  server_name your.domain.com;  # Replace with your actual domain
 
   ssl_certificate /etc/nginx/ssl/your.domain.com.crt;
   ssl_certificate_key /etc/nginx/ssl/your.domain.com.key;
+  
+  # Strong SSL settings
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers on;
+  ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
+  
+  # Basic Authentication
+  auth_basic "Restricted Access";
+  auth_basic_user_file /etc/nginx/.htpasswd;
 
   location / {
-    proxy_pass http://localhost:1234;
+    proxy_pass http://localhost:1234;  # LM Studio server port
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -273,8 +323,9 @@ server {
 
     # Robust CORS headers for all requests
     more_set_headers 'Access-Control-Allow-Origin: *';
-    more_set_headers 'Access-Control-Allow-Methods: GET, POST, OPTIONS';
+    more_set_headers 'Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE';
     more_set_headers 'Access-Control-Allow-Headers: Authorization,Content-Type,Origin,Accept';
+    more_set_headers 'Access-Control-Allow-Credentials: true';
 
     # Handle preflight OPTIONS requests
     if ($request_method = 'OPTIONS') {
@@ -285,7 +336,43 @@ server {
     }
   }
 }
+
+# Redirect HTTP to HTTPS
+server {
+  listen 80;
+  server_name your.domain.com;
+  return 301 https://$server_name$request_uri;
+}
 ```
+
+5. **Enable the site and restart Nginx**:
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/lmstudio /etc/nginx/sites-enabled/
+   sudo nginx -t  # Test the configuration
+   sudo systemctl restart nginx
+   ```
+
+6. **Configure firewall** (if applicable):
+   ```bash
+   sudo ufw allow 'Nginx Full'
+   ```
+
+### Connecting LMSA to Your Secure Server
+
+1. Open the LMSA app
+2. Go to Settings
+3. Enter your domain name (e.g., `your.domain.com`)
+4. Enable SSL/HTTPS toggle
+5. Enter username and password in the authentication section
+6. Test the connection
+
+### Security Notes
+
+- Using Basic Authentication with HTTPS ensures your credentials are encrypted in transit
+- The CORS headers allow the mobile app to communicate with your server
+- For production use, consider obtaining a proper SSL certificate from Let's Encrypt
+- Regularly update your passwords for better security
+- The headers-more module is required for proper CORS header handling
 
 ---
 

@@ -1,0 +1,40 @@
+.auth-error {
+    border-color: rgba(220, 38, 38, 0.8) !important;
+    animation: shake 0.5s;
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2) !important;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+#test-server-result.error-message {
+    color: #dc2626;
+    font-weight: 500;
+}
+
+#test-server-result.success-message {
+    color: #10b981;
+    font-weight: 500;
+}
+
+/* Password toggle button styling */
+#password-toggle {
+    transition: all 0.2s ease;
+    opacity: 0.7;
+}
+
+#password-toggle:hover {
+    opacity: 1;
+}
+
+#password-toggle:active {
+    transform: scale(0.95);
+}
+
+/* Password field with toggle visible */
+.password-visible #password-toggle-icon {
+    color: #60a5fa; /* Highlight color when password is visible */
+}

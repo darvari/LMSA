@@ -1,7 +1,7 @@
 // Chat Service for handling chat functionality
 import { messagesContainer, userInput, loadedModelDisplay } from './dom-elements.js';
 import { appendMessage, showLoadingIndicator, hideLoadingIndicator, toggleSendStopButton, hideWelcomeMessage, showWelcomeMessage, toggleSidebar, showConfirmationModal, hideConfirmationModal, updateChatHistoryScroll } from './ui-manager.js';
-import { getApiUrl, getAvailableModels, isServerRunning, fetchAvailableModels } from './api-service.js';
+import { getApiUrl, getAvailableModels, isServerRunning, fetchAvailableModels, getAuthHeaders } from './api-service.js';
 import { getSystemPrompt, getTemperature, isSystemPromptSet, getAutoGenerateTitles, isUserCreatedPrompt, getHideThinking, getReasoningTimeout } from './settings-manager.js';
 import { sanitizeInput, basicSanitizeInput, initializeCodeMirror, scrollToBottom, handleScroll, debugLog, debugError, filterToEnglishCharacters, processCodeBlocks, decodeHtmlEntities, refreshAllCodeBlocks, containsCodeBlocks, containsCodeBlocksOutsideThinkTags, saveCurrentChatBeforeRefresh, removeThinkTags, hideScrollToBottomButton } from './utils.js';
 import { setActionToPerform } from './shared-state.js';
@@ -377,11 +377,15 @@ async function generateAIResponseInternal(userMessage, fileContents = []) {
         });
 
         // Send the request to the API with timeout protection
+        // Get authentication headers and merge them with our content-type
+        const headers = {
+            ...getAuthHeaders(),
+            'Content-Type': 'application/json',
+        };
+        
         const fetchPromise = fetch(apiUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: headers,
             body: JSON.stringify(requestBody),
             signal: signal
         });
