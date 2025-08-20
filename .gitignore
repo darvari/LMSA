@@ -4,3 +4,21 @@ CLAUDE.md
 # Ignore IDE and editor settings
 .claude/
 .vscode/
+
+# Ignore Android build files
+android/
+.capacitor.config.local.json
+capacitor.config.json.signing
+lmsa-key.keystore
+
+# Ignore Node.js dependencies
+node_modules/
+package-lock.json
+
+# Capacitor files
+capacitor.config.json
+www/
+
+# Build files
+dist/
+build/
