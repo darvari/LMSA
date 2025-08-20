@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "@capacitor/android": "^7.4.2",
+    "@capacitor/cli": "^7.4.2",
+    "@capacitor/core": "^7.4.2"
+  },
+  "name": "lmsa",
+  "description": "![Status: Open Source](https://img.shields.io/badge/Status-Open%20Source-brightgreen) ![Version: Current](https://img.shields.io/badge/Version-Current-green) ![Release: Community](https://img.shields.io/badge/Release-Community%20Driven-blue)",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/peterrhone/LMSA.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/peterrhone/LMSA/issues"
+  },
+  "homepage": "https://github.com/peterrhone/LMSA#readme"
+}
