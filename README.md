@@ -194,7 +194,6 @@ Install Capacitor and Android build tools:
 ```bash
 sudo apt update
 sudo apt install nodejs npm openjdk-11-jdk android-sdk adb
-npm install @capacitor/core @capacitor/cli @capacitor/android
 ```
 
 ### Building the APK
@@ -206,6 +205,7 @@ npm install @capacitor/core @capacitor/cli @capacitor/android
   ```
 2. Create or update the Capacitor project:
   ```bash
+  npm install @capacitor/core @capacitor/cli @capacitor/android
   npm init -y
   npx cap init LMSA com.example.lmsa --web-dir www
   mkdir -p www
