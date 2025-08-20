@@ -206,16 +206,8 @@ sudo apt install nodejs npm openjdk-11-jdk android-sdk adb
   cp -r index.html css js icon.png www/
   ```
 3. Add the Android platform:
-2. Create or update the Capacitor project:
   ```bash
-  npm init -y
-  npx cap init LMSA com.example.lmsa --web-dir www
-  mkdir -p www
-  cp -r index.html css js icon.png www/
-  ```
-3. Add the Android platform:
-  ```bash
-  npx cap add android
+  npx cap add android # complains that is already added
   # For Android 8 compatibility:
   # Edit android/variables.gradle to set minSdkVersion = 26
   # Edit capacitor.config.json to add Android configuration
