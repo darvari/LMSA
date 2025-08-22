@@ -13,7 +13,6 @@ lmsa-key.keystore
 
 # Ignore Node.js dependencies
 node_modules/
-package-lock.json
 
 # Capacitor files
 capacitor.config.json
