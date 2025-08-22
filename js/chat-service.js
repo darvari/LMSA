@@ -378,8 +378,9 @@ async function generateAIResponseInternal(userMessage, fileContents = []) {
 
         // Send the request to the API with timeout protection
         // Get authentication headers and merge them with our content-type
-        const headers = {
-            ...getAuthHeaders(),
+        const authHeaders = await getAuthHeaders();
+        const headers = { 
+            ...authHeaders,
             'Content-Type': 'application/json',
         };
         
@@ -2248,10 +2249,12 @@ export async function generateChatTitle(userMessage) {
 
         debugLog('Sending API request to generate chat title');
 
+        const authHeaders = await getAuthHeaders();
         const response = await fetch(getApiUrl(), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                ...authHeaders
             },
             body: JSON.stringify(requestBody),
         });
@@ -2545,10 +2548,12 @@ export async function regenerateLastResponse(isRetry = false) {
             });
 
             // Send request to API with timeout protection
+            const authHeaders = await getAuthHeaders();
             const fetchPromise = fetch(getApiUrl(), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...authHeaders, // Include any authentication headers
                 },
                 body: JSON.stringify(requestBody),
                 signal: signal

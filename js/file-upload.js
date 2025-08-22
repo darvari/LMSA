@@ -48,9 +48,10 @@ export async function isVisionModel() {
         
         // Method 1: Check model details from /v1/models endpoint
         try {
+            const authHeaders = await getAuthHeaders();
             const modelsResponse = await fetch(getServerUrl('/v1/models'), {
                 method: 'GET',
-                headers: getAuthHeaders(),
+                headers: authHeaders,
                 signal: AbortSignal.timeout(3000) // 3 second timeout
             });
 
@@ -82,6 +83,7 @@ export async function isVisionModel() {
 
         // Method 3: Check model info through additional endpoints
         try {
+            const authHeaders = await getAuthHeaders();
             const infoEndpoints = [
                 '/v1/internal/model/info',
                 '/v1/model/info',
@@ -92,7 +94,7 @@ export async function isVisionModel() {
                 try {
                     const infoResponse = await fetch(getServerUrl(endpoint), {
                         method: 'GET',
-                        headers: getAuthHeaders(),
+                        headers: authHeaders,
                         signal: AbortSignal.timeout(2000)
                     });
 
@@ -272,7 +274,7 @@ async function testVisionCapability(serverIp, serverPort, modelId) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                ...getAuthHeaders()
+                ...authHeaders
             },
             body: JSON.stringify(testRequest),
             signal: AbortSignal.timeout(5000) // 5 second timeout

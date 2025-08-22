@@ -1,3 +1,6 @@
+let API_URL = ''; // Fix ReferenceError for API_URL
+let availableModels = []; // Track available model IDs to avoid ReferenceError
+
 /**
  * Builds the full server URL for a given endpoint using current settings
  * @param {string} endpoint - The API endpoint (e.g. '/v1/models')
@@ -40,7 +43,7 @@ export function getServerUrl(endpoint = '') {
     return url;
 }
 // Test server response utility
-export function testServerResponse() {
+export async function testServerResponse() {
     const resultDiv = document.getElementById('test-server-result');
     if (!resultDiv) return;
 
@@ -48,8 +51,8 @@ export function testServerResponse() {
     
     // Use our getServerUrl function for the URL and getAuthHeaders for authentication
     const url = getServerUrl('/v1/models');
-    const headers = getAuthHeaders();
-    
+    const headers = await getAuthHeaders(); // await here
+
     // Log auth information for debugging (safely)
     const useAuthSwitch = document.getElementById('use-auth-switch');
     const authUsername = document.getElementById('auth-username');
@@ -208,44 +211,60 @@ export async function getAuthHeaders() {
     };
     
     try {
-        // Add authentication if enabled and credentials are provided
+        // Only add auth header if auth is enabled
         if (useAuthSwitch && useAuthSwitch.checked) {
-            // Get credentials from secure storage
-            const { username, password } = await getSecureCredentials();
+            const authUsername = document.getElementById('auth-username');
+            const authPassword = document.getElementById('auth-password');
             
-            if (username && password) {
-                try {
-                    // Format specifically for nginx which can be picky about Basic Auth format
-                    const credentials = btoa(unescape(encodeURIComponent(`${username}:${password}`)));
-                    headers['Authorization'] = `Basic ${credentials}`;
+            if (authUsername && authPassword) {
+                const username = authUsername.value.trim();
+                const password = authPassword.value.trim();
+                
+                if (username && password) {
+                    // Ensure proper encoding for special characters in credentials
+                    const base64Credentials = btoa(unescape(encodeURIComponent(`${username}:${password}`)));
+                    headers['Authorization'] = `Basic ${base64Credentials}`;
                     
-                    // Log for debugging
-                    console.log('Auth headers created for nginx', {
-                       hasUsername: !!username,
-                       hasPassword: !!password,
-                       headerSet: !!headers['Authorization']
+                    // Debug logging to help troubleshoot auth issues
+                    const isNginxAuth = username.toLowerCase().includes('nginx') || 
+                                      window.location.hostname.includes('nginx') ||
+                                      window.location.hostname.includes('baldwiniv');
+                    
+                    console.log('Auth headers created for ' + (isNginxAuth ? 'nginx' : 'standard'), {
+                        hasUsername: !!username,
+                        hasPassword: !!password,
+                        headerSet: !!headers['Authorization'],
                     });
-                } catch (encodeError) {
-                    // Fallback to simpler encoding if the first method fails
-                    console.error('Error in primary encoding method, trying fallback', encodeError);
-                    const simpleCredentials = btoa(`${username}:${password}`);
-                    headers['Authorization'] = `Basic ${simpleCredentials}`;
-                }
-            } else {
-                // Debug why authentication is not being added
-                if (!username) {
-                    console.log('Missing username from secure storage');
-                } else if (!password) {
-                    console.log('Missing password from secure storage');
+                    
+                    // Store credentials securely if available
+                    try {
+                        await storeSecureCredentials(username, password);
+                    } catch (storageError) {
+                        // Non-critical error, just log and continue
+                        console.log('Could not store credentials securely:', storageError.message);
+                    }
+                } else {
+                    console.warn('Authentication is enabled but username or password is empty');
                 }
             }
-        } else {
-            console.log('Auth not enabled');
         }
     } catch (error) {
         console.error('Error creating auth headers:', error);
-        // Create fallback headers in case of encoding error
-        headers['X-Auth-Error'] = 'Failed to encode credentials';
+        
+        // Even in case of error, still try to add Authorization header with basic fallback
+        try {
+            const authUsername = document.getElementById('auth-username');
+            const authPassword = document.getElementById('auth-password');
+            
+            if (authUsername && authPassword && authUsername.value && authPassword.value) {
+                // Fallback to a simpler encoding method if the main one fails
+                const base64Credentials = btoa(`${authUsername.value}:${authPassword.value}`);
+                headers['Authorization'] = `Basic ${base64Credentials}`;
+                console.log('Added fallback auth header after error');
+            }
+        } catch (fallbackError) {
+            console.error('Error creating fallback auth header:', fallbackError);
+        }
     }
     
     return headers;
@@ -484,9 +503,12 @@ export async function fetchAvailableModels() {
         }
 
         try {
+            // get auth headers properly
+            const authHeaders = await getAuthHeaders();
+
             const modelsResponse = await fetch(modelsUrl, {
                 signal: controller.signal,
-                headers: getAuthHeaders()
+                headers: authHeaders
             });
 
             // Clear the timeout using the manager or the fallback
@@ -573,11 +595,14 @@ export async function fetchAvailableModels() {
                                 timeoutHandle = { clear: () => clearTimeout(timeoutId) };
                             }
 
+                            // get auth headers for each probe (await!)
+                            const probeAuthHeaders = await getAuthHeaders();
+
                             // Use fetch with a catch handler to silently handle HTTP errors
                             const modelInfoResponse = await fetch(getServerUrl(endpoint), {
                                 method: 'GET',
                                 signal: controller.signal,
-                                headers: getAuthHeaders()
+                                headers: probeAuthHeaders
                             }).catch(() => {
                                 // Silently catch network errors and HTTP errors
                                 return { ok: false };
@@ -628,10 +653,12 @@ export async function fetchAvailableModels() {
                         timeoutHandle = { clear: () => clearTimeout(timeoutId) };
                     }
 
+                    // get auth headers for each probe
+                    const chatAuthHeaders = await getAuthHeaders();
                     const chatResponse = await fetch(getServerUrl('/v1/chat/completions'), {
                         method: 'POST',
                         headers: {
-                            ...getAuthHeaders(),
+                            ...chatAuthHeaders,
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
@@ -745,7 +772,10 @@ export async function fetchAvailableModels() {
             // Return the full model data for UI display
             return modelsList;
         } catch (fetchError) {
-            clearTimeout(timeoutId);
+            // Properly clear managed timeout on error
+            if (timeoutHandle && typeof timeoutHandle.clear === 'function') {
+                timeoutHandle.clear();
+            }
             console.error('Error fetching models:', fetchError);
             availableModels = []; // Ensure availableModels is empty
             if (loadedModelDisplay) {
@@ -847,11 +877,11 @@ export async function isServerRunning() {
 
         try {
             // Get authentication headers properly
-            const authHeaders = getAuthHeaders();
+            const authHeaders = await getAuthHeaders(); // await here
             
             const response = await fetch(modelsUrl, {
                 method: 'GET',
-                headers: authHeaders,  // Use the exact same headers format as other requests
+                headers: authHeaders,  // Use awaited headers
                 signal: controller.signal
             });
 
@@ -897,13 +927,13 @@ async function tryEndpoints(ip, port, operation, endpoints, requestData = null) 
             }
 
             // Get auth headers with same format as other requests
-            const authHeaders = getAuthHeaders();
+            const authHeaders = await getAuthHeaders(); // await here
             
             console.log(`Auth headers for ${operation}:`, Object.keys(authHeaders));
             
             const options = {
                 method: endpoint.method,
-                headers: authHeaders,  // Use the exact same headers as other requests
+                headers: authHeaders,  // Use awaited headers
                 signal: controller.signal
             };
 
@@ -950,12 +980,15 @@ async function waitForModelLoad(ip, port, modelId, maxAttempts = 10) {
             console.log(`Checking if model is loaded (attempt ${attempt + 1}/${maxAttempts})...`);
 
             // Make a simple test completion to see if the model responds
-            const authHeaders = getAuthHeaders();
+            const authHeaders = await getAuthHeaders(); // await here
             console.log(`Auth headers for model verification:`, Object.keys(authHeaders));
             
             const testResponse = await fetch(getServerUrl('/v1/chat/completions'), {
                 method: 'POST',
-                headers: authHeaders,
+                headers: {
+                    ...authHeaders,
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({
                     model: modelId,
                     messages: [
@@ -1002,13 +1035,13 @@ async function forceLoadModel(ip, port, modelId) {
     try {
         console.log(`Force loading model ${modelId} via completion API...`);
 
-        // Make a special completion request that forces model loading
-        // The long prompt forces LM Studio to fully load the model
-    const response = await fetch(getServerUrl('/v1/chat/completions'), {
+        const authHeaders = await getAuthHeaders(); // await here
+
+        const response = await fetch(getServerUrl('/v1/chat/completions'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                ...getAuthHeaders()
+                ...authHeaders
             },
             body: JSON.stringify({
                 model: modelId,
@@ -1150,9 +1183,12 @@ export async function ejectModel() {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 3000);
 
+                // Await auth headers here
+                const modelsAuthHeaders = await getAuthHeaders();
+
                 const modelsResponse = await fetch(getServerUrl('/v1/models'), {
                     signal: controller.signal,
-                    headers: getAuthHeaders()
+                    headers: modelsAuthHeaders
                 }).catch(() => {
                     return { ok: false };
                 });
@@ -1272,6 +1308,10 @@ export async function loadServerSettings() {
     const savedSSL = localStorage.getItem('serverSSL') === 'true';
     const savedUseAuth = localStorage.getItem('use-auth') === 'true';
     
+    // Add these to avoid ReferenceError later
+    let savedAuthUsername = null;
+    let savedAuthPassword = null;
+    
     console.log('Loading server settings, auth enabled:', savedUseAuth);
 
     if (serverIpInput && serverPortInput) {
@@ -1295,9 +1335,13 @@ export async function loadServerSettings() {
             if (savedUseAuth) {
                 // Get credentials from secure storage
                 const credentials = await getSecureCredentials();
-                if (credentials.username) authUsername.value = credentials.username;
+                if (credentials.username) {
+                    authUsername.value = credentials.username;
+                    savedAuthUsername = credentials.username; // store for hasValidAuth check
+                }
                 if (credentials.password) {
                     authPassword.value = credentials.password;
+                    savedAuthPassword = credentials.password; // store for hasValidAuth check
                     console.log('Restored password from secure storage');
                 }
             }
