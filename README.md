@@ -12,50 +12,32 @@
   </a>
 </p>
 
-## 🆕 What's New
+## 🆕 What's New in Upstream
 🎉 **Latest Update: Version 7.1** - August 2025
 
-### New Features & Improvements
-- **Settings Menu Fix**: Fixed an issue where the settings menu wasn't positioning itself correctly on some devices, ensuring consistent user experience across all device types
-- **Performance Optimization**: The app has been fully optimized to run better on more devices with improved performance, reduced memory usage, and enhanced stability across different hardware configurations
-- **System Prompts Feature**: The character feature has been replaced with the ability to save system prompts, providing a more flexible and powerful way to customize your AI interactions. You can now create, save, and manage multiple system prompts for different use cases
-- **Enhanced Compatibility**: Improved device compatibility and performance optimizations for a smoother experience across various Android devices
+- **Settings Menu Fix**: Fixed an issue where the settings menu wasn't positioning itself correctly on some devices
+- **Performance Optimization**: Improved performance, reduced memory usage, and enhanced stability across different hardware configurations
+- **System Prompts Feature**: Replaced character feature with the ability to save system prompts for more flexible AI interactions
+- **Enhanced Compatibility**: Improved device compatibility for a smoother experience across various Android devices
 
-### Bug Fixes
-- **CORS & Preflight Redirects:** Fixed persistent CORS errors by ensuring all requests use the correct protocol and port logic.
-- **Android Build Parity:** Synced all Capacitor/Android build JS files with main codebase changes.
+## 🔀 About This Fork
 
-## 🔀 Changes in This Fork
+This fork adds secure remote access LMSA, giving you the ability utilize LM Studio on your server from anywhere.
 
-This fork includes significant improvements to enable secure remote access to LM Studio servers:
-
-### Server Connection Enhancements
-- **Smart URL Construction**: Completely refactored API calls to use a centralized `getServerUrl()` function, ensuring consistent protocol and port handling across all requests
+### Server Connection Changes
 - **Domain Name Support**: Added support for domain names in addition to IP addresses
-- **Automatic Protocol Detection**: The app now detects if a URL includes protocols (http/https) and adjusts settings accordingly
-- **Authentication Support**: Added optional username/password authentication for secure remote access to LM Studio servers
-  - Can be toggled on/off for both remote and local connections
-  - Credentials are stored securely in localStorage
-  - Multiple account support with different servers
+- **Automatic Protocol Detection**: Detects if URLs include protocols (http/https)
+- **Server Response Testing**: Added Test Server Response button to verify connectivity
+- **Smart URL Construction**: Centralized `getServerUrl()` function for consistent protocol and port handling
+- **Authentication Support**: Optional username/password authentication for secure remote access
+  - Toggle on/off for both remote and local connections
+  - Secure credential storage in localStorage
+  - Multiple account support for different servers
 - **Smart Port Handling**: 
-  - Ports are omitted for standard protocols (port 80 for HTTP, port 443 for HTTPS) to prevent browser redirect issues
-  - Default port 443 is automatically used when SSL is enabled
-  - Default port 1234 is used for non-SSL connections if no port is specified
-- **Enhanced Security**: Non-local domains (anything not matching localhost/127.0.0.1/10.x.x.x/192.168.x.x/172.16-31.x.x) automatically use HTTPS for improved security
-- **Server Response Testing**: Added a Test Server Response button to verify connectivity and display server status before attempting to chat
-
-### Mobile UI Improvements
-- **Field Validation**: Domain name input field has autocorrect and spellcheck disabled for more accurate entry
-- **Visual Feedback**: Port field shows default values in grey when not explicitly set
-- **Error Handling**: Improved error messages for connection issues, specifically addressing CORS and preflight redirect problems
-
-### Previous Updates
-- **Version 7.0**: Performance optimization, system prompts feature, and enhanced compatibility
-- **Version 6.5**: Added scroll to bottom icon, improved welcome screen behavior, and comprehensive performance improvements
-- **Version 5.5**: Added full Vision Language Model (VLM) support for image upload and analysis, enabling multimodal conversations with AI models
-- **Bug Fixes**: Resolved keyboard overlap issues, fixed PDF file attachments, and disabled auto-scroll feature for better chat experience
-
----
+  - Standard ports omitted (80 for HTTP, 443 for HTTPS) to prevent redirect issues
+  - Default port 443 used with SSL enabled
+  - Default port 1234 used for non-SSL connections when unspecified
+- **Enhanced Security**: Non-local domains automatically use HTTPS
 
 ## 📸 Screenshots
 <p align="left">
@@ -124,7 +106,7 @@ The project is now community-driven and open source. Development efforts are foc
 ## 💻 How It Works
 1. Start LM Studio on your computer and load your favorite language model (including vision language models)
 2. Activate the server feature in LM Studio (usually on port 1234)
-3. Connect the Android app to your computer using your local network
+3. Connect the Android app to your computer
 4. Start chatting with your AI models from anywhere in your home
 
 LMSA connects to LM Studio running on your computer, allowing you to:
@@ -147,116 +129,189 @@ LMSA connects to LM Studio running on your computer, allowing you to:
 - LM Studio installed and running on a computer with a suitable language model (text or vision)
 - Both devices connected to the same network
 
-## 🚀 Get Started Today
-1. Download and install the app
+## 🚀 Getting Started
+
+### Option 1: Install from Google Play
+1. Download LMSA from [Google Play Store](https://play.google.com/store/apps/details?id=com.lmsa.app)
 2. Start LM Studio and load a model on your computer
 3. Start the LM Studio server
 4. Open the app and enter the server IP and port in Settings
 5. Begin chatting immediately!
 
-## Installation
----
-
-## 🛠️ Building the APK & Setting Up Nginx on Ubuntu
-
-## 🛠️ Building the LMSA APK on Ubuntu
----
-
-## 🖥️ Running LMSA Locally in Your Browser
+### Option 2: Run Locally in Your Browser
 
 You can run LMSA as a web app for local testing and development:
 
+#### Prerequisites
+- Node.js v16+ and npm v8+
+
+#### Steps
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/peterrhone/LMSA.git
+   cd LMSA
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start a local server:
+   ```bash
+   npx serve .
+   ```
+4. Open your browser and navigate to:
+   ```
+   http://localhost:3000/index.html
+   ```
+
+## 🛠️ Building the LMSA APK from Source
+
 ### Prerequisites
-- Node.js and npm installed
+- Ubuntu 20.04 LTS or newer (or similar Linux distribution)
+- Node.js v16+ and npm v8+
+- JDK 11+
+- Android SDK 30+ (via Android Studio)
+- Git
 
-### Steps
-1. Open a terminal in the LMSA project directory.
-2. Install a simple static server (if you don't have it):
-  ```bash
-  npm install -g serve
-  ```
-3. Start the server:
-  ```bash
-  npx serve .
-  ```
-4. Open your browser and go to:
-  ```
-  http://localhost:3000/index.html
-  ```
-
-You can now use LMSA directly in your browser. Make sure your LM Studio server is running and configured for local access.
-
----
-
-### Prerequisites
-
-Install Capacitor and Android build tools:
+### Step 1: Install Required Dependencies
 ```bash
+# Install Node.js and npm if not installed
+curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 sudo apt update
-sudo apt install nodejs npm openjdk-11-jdk android-sdk adb
+sudo apt install -y nodejs openjdk-11-jdk git
+
+# Verify installations
+node --version  # Should be v16.x or higher
+npm --version   # Should be v8.x or higher
+java --version  # Should be v11.x or higher
 ```
 
-### Building the APK
+### Step 2: Install Android Studio and Android SDK
+1. Download and install Android Studio from [developer.android.com](https://developer.android.com/studio)
+2. During installation, ensure "Android SDK" and "Android SDK Platform-Tools" are selected
+3. After installation, open Android Studio and go to "SDK Manager"
+4. Install Android SDK Platform 30 (or higher) and Android Build Tools 30.0.3 (or higher)
 
-1. Clone the repository:
-  ```bash
-  git clone https://github.com/peterrhone/LMSA.git
-  cd LMSA
-  ```
-2. Create or update the Capacitor project:
-  ```bash
-  npm install @capacitor/core @capacitor/cli @capacitor/android
-  npm init -y
-  npx cap init LMSA com.example.lmsa --web-dir www
-  mkdir -p www
-  cp -r index.html css js icon.png www/
-  ```
-3. Add the Android platform:
-2. Create or update the Capacitor project:
-  ```bash
-  npm init -y
-  npx cap init LMSA com.example.lmsa --web-dir www
-  mkdir -p www
-  cp -r index.html css js icon.png www/
-  ```
-3. Add the Android platform:
-  ```bash
-  npx cap add android
-  # For Android 8 compatibility:
-  # Edit android/variables.gradle to set minSdkVersion = 26
-  # Edit capacitor.config.json to add Android configuration
-  npx cap sync
-  ```
-4. Open in Android Studio and build:
-  ```bash
-  npx cap open android
-  ```
-5. In Android Studio:
-   - Click "Build" → "Build Bundle(s) / APK(s)" → "Build APK(s)"
-   - Find the APK in `android/app/build/outputs/apk/debug/app-debug.apk`
+### Step 3: Set Up Environment Variables
+Add the following to your `~/.bashrc` file:
 
-6. Install the APK on your device:
-  ```bash
-  adb install ./android/app/build/outputs/apk/debug/app-debug.apk
-  ```
+```bash
+# Android SDK paths
+export ANDROID_SDK_ROOT=$HOME/Android/Sdk
+export PATH=$PATH:$ANDROID_SDK_ROOT/tools/bin
+export PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools
+export PATH=$PATH:$ANDROID_SDK_ROOT/emulator
+export CAPACITOR_ANDROID_STUDIO_PATH=/path/to/android-studio/bin/studio # set path accordingly
+```
 
-### Notes
-- Make sure you have Android Studio installed and configured.
-- You may need to set up your device for USB debugging.
+Reload your bash profile:
+```bash
+source ~/.bashrc
+```
 
----
-1. Clone the repository
-2. npm install @capacitor/core @capacitor/cli @capacitor/android
-3. npx cap init LMSA com.example.lmsa --web-dir www
-4. Copy web files to www directory (cp -r index.html css js icon.png www/)
-5. npx cap add android
-6. npx cap sync
-7. npx cap open android
-8. Build the APK in Android Studio
-9. Install the resulting APK from ./android/app/build/outputs/apk/debug/app-debug.apk to your phone with adb install
+### Step 4: Clone and Build the Project
+```bash
+# Clone the repository
+git clone https://github.com/peterrhone/LMSA.git
+cd LMSA
 
-## 📥 Download Information
----
+# Install Capacitor dependencies
+npm install @capacitor/core @capacitor/cli @capacitor/android
+
+# Initialize Capacitor project
+npm init -y
+npx cap init LMSA com.example.lmsa --web-dir www
+
+# Prepare web files
+mkdir -p www
+cp -r index.html css js assets icon.png www/
+
+# Add Android platform
+npx cap add android
+
+# Configure for Android 8+ compatibility (SDK 26+)
+# Edit android/variables.gradle to set minSdkVersion = 26
+
+# Sync project
+npx cap sync
+```
+
+### Step 5: Configure Credential Storage
+To enable secure credential storage for authentication:
+
+1. Install the Capacitor Secure Storage plugin:
+   ```bash
+   npm install @capacitor-community/secure-storage
+   npx cap sync
+   ```
+
+2. Add plugin configuration to capacitor.config.json:
+   ```json
+   {
+     "plugins": {
+       "SecureStorage": {
+         "encrypt": true
+       }
+     }
+   }
+   ```
+
+3. The app uses this plugin to securely store authentication credentials in `api-service.js`:
+
+   ```javascript
+   // Store credentials securely
+   export async function storeSecureCredentials(username, password) {
+     try {
+       if (window.Capacitor && window.Capacitor.Plugins.SecureStorage) {
+         await window.Capacitor.Plugins.SecureStorage.set({
+           key: 'auth_credentials',
+           value: JSON.stringify({ username, password })
+         });
+       }
+     } catch (error) {
+       console.error('Failed to store credentials:', error);
+     }
+   }
+   
+   // Retrieve credentials securely
+   export async function getSecureCredentials() {
+     try {
+       if (window.Capacitor && window.Capacitor.Plugins.SecureStorage) {
+         const result = await window.Capacitor.Plugins.SecureStorage.get({ 
+           key: 'auth_credentials' 
+         });
+         if (result && result.value) {
+           return JSON.parse(result.value);
+         }
+       }
+     } catch (error) {
+       console.error('Failed to retrieve credentials:', error);
+     }
+     return { username: null, password: null };
+   }
+   ```
+
+4. The necessary permissions are automatically added to AndroidManifest.xml when you run `npx cap sync`:
+   - INTERNET permission for network connectivity
+   - Optional biometric permissions for secure storage access (if available on device)
+
+   You don't need to manually edit the AndroidManifest.xml file as Capacitor handles this automatically.
+
+### Step 6: Build and Run the APK
+```bash
+# Open the project in Android Studio
+npx cap open android
+
+# In Android Studio:
+# 1. Click "Build" → "Build Bundle(s) / APK(s)" → "Build APK(s)"
+# 2. Find the APK in android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Step 7: Install the APK on Your Device
+Connect your Android device via USB (with USB debugging enabled) and run:
+```bash
+adb install ./android/app/build/outputs/apk/debug/app-debug.apk
+```
 
 ## 🌐 Remote Access & Nginx Configuration
 
@@ -374,13 +429,17 @@ server {
 - Regularly update your passwords for better security
 - The headers-more module is required for proper CORS header handling
 
----
+## 📥 Download Options
 
 ### Recommended: Google Play Release
 **LMSA - Google Play**<br>
 **Publisher:** IslandApps<br>
 **Updates:** Regular feature, security and maintenance updates<br>
 [**Download Now →**](https://play.google.com/store/apps/details?id=com.lmsa.app)
+
+### Alternative: GitHub Release
+For those who prefer direct downloads or want to try the latest beta versions:<br>
+[**Get Latest APK from GitHub →**](https://github.com/techcow2/LMSA/releases)
 
 ## ⚠️ Disclaimer
 LMSA is a third-party application and is not affiliated with LM Studio or its developers. This app is independently developed to provide an Android front-end interface for interacting with LM Studio. Use of this app is at your own discretion, and the developers of LMSA are not responsible for any issues arising from its use.

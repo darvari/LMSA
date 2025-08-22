@@ -199,10 +199,8 @@ import { getLightThemeEnabled } from './settings-manager.js';
  * Get authentication headers if authentication is enabled
  * @returns {Object} - Headers object with Authorization header if authentication is enabled
  */
-export function getAuthHeaders() {
+export async function getAuthHeaders() {
     const useAuthSwitch = document.getElementById('use-auth-switch');
-    const authUsername = document.getElementById('auth-username');
-    const authPassword = document.getElementById('auth-password');
     
     // Create base headers - always include Content-Type
     const headers = {
@@ -211,41 +209,38 @@ export function getAuthHeaders() {
     
     try {
         // Add authentication if enabled and credentials are provided
-        if (useAuthSwitch && useAuthSwitch.checked && 
-            authUsername && authUsername.value.trim() && 
-            authPassword && authPassword.value.trim()) {
+        if (useAuthSwitch && useAuthSwitch.checked) {
+            // Get credentials from secure storage
+            const { username, password } = await getSecureCredentials();
             
-            // Get the raw values first
-            const username = authUsername.value.trim();
-            const password = authPassword.value.trim();
-            
-            try {
-                // Format specifically for nginx which can be picky about Basic Auth format
-                // Use double encoding approach to handle special characters
-                const credentials = btoa(unescape(encodeURIComponent(`${username}:${password}`)));
-                headers['Authorization'] = `Basic ${credentials}`;
-                
-                // Log for debugging
-                console.log('Auth headers created for nginx', {
-                   hasUsername: !!username,
-                   hasPassword: !!password,
-                   headerSet: !!headers['Authorization']
-                });
-            } catch (encodeError) {
-                // Fallback to simpler encoding if the first method fails
-                console.error('Error in primary encoding method, trying fallback', encodeError);
-                const simpleCredentials = btoa(`${username}:${password}`);
-                headers['Authorization'] = `Basic ${simpleCredentials}`;
+            if (username && password) {
+                try {
+                    // Format specifically for nginx which can be picky about Basic Auth format
+                    const credentials = btoa(unescape(encodeURIComponent(`${username}:${password}`)));
+                    headers['Authorization'] = `Basic ${credentials}`;
+                    
+                    // Log for debugging
+                    console.log('Auth headers created for nginx', {
+                       hasUsername: !!username,
+                       hasPassword: !!password,
+                       headerSet: !!headers['Authorization']
+                    });
+                } catch (encodeError) {
+                    // Fallback to simpler encoding if the first method fails
+                    console.error('Error in primary encoding method, trying fallback', encodeError);
+                    const simpleCredentials = btoa(`${username}:${password}`);
+                    headers['Authorization'] = `Basic ${simpleCredentials}`;
+                }
+            } else {
+                // Debug why authentication is not being added
+                if (!username) {
+                    console.log('Missing username from secure storage');
+                } else if (!password) {
+                    console.log('Missing password from secure storage');
+                }
             }
         } else {
-            // Debug why authentication is not being added
-            if (!useAuthSwitch || !useAuthSwitch.checked) {
-                console.log('Auth not enabled');
-            } else if (!authUsername || !authUsername.value.trim()) {
-                console.log('Missing username');
-            } else if (!authPassword || !authPassword.value.trim()) {
-                console.log('Missing password');
-            }
+            console.log('Auth not enabled');
         }
     } catch (error) {
         console.error('Error creating auth headers:', error);
@@ -256,18 +251,96 @@ export function getAuthHeaders() {
     return headers;
 }
 
-let API_URL = '';
-let availableModels = [];
+/**
+ * Store credentials securely using Capacitor Secure Storage
+ * @param {string} username - Username to store
+ * @param {string} password - Password to store
+ * @returns {Promise<boolean>} - True if successful
+ */
+export async function storeSecureCredentials(username, password) {
+    try {
+        // Check if we're in Capacitor environment
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SecureStorage) {
+            await window.Capacitor.Plugins.SecureStorage.set({
+                key: 'auth_credentials',
+                value: JSON.stringify({ username, password })
+            });
+            console.log('Credentials stored securely');
+            return true;
+        } else {
+            // Fallback for web/development
+            console.warn('Secure Storage not available, falling back to localStorage');
+            localStorage.setItem('auth-username', username);
+            localStorage.setItem('auth-password', btoa(password));
+            return true;
+        }
+    } catch (error) {
+        console.error('Failed to store credentials:', error);
+        return false;
+    }
+}
 
-// Add global model tracking declaration to make TypeScript/linting happy
-// window.currentLoadedModel tracks the currently loaded model name
-// Add a flag to track if this is the initial startup
-window.isInitialStartup = true;
+/**
+ * Get credentials from secure storage
+ * @returns {Promise<Object>} - Object with username and password
+ */
+export async function getSecureCredentials() {
+    try {
+        // Check if we're in Capacitor environment
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SecureStorage) {
+            const result = await window.Capacitor.Plugins.SecureStorage.get({ key: 'auth_credentials' });
+            if (result && result.value) {
+                const credentials = JSON.parse(result.value);
+                return {
+                    username: credentials.username,
+                    password: credentials.password
+                };
+            }
+        } else {
+            // Fallback for web/development
+            console.warn('Secure Storage not available, falling back to localStorage');
+            const username = localStorage.getItem('auth-username');
+            const password = localStorage.getItem('auth-password');
+            return {
+                username,
+                password: password ? atob(password) : null
+            };
+        }
+    } catch (error) {
+        console.error('Failed to retrieve credentials:', error);
+    }
+    
+    // Return empty credentials if anything fails
+    return { username: null, password: null };
+}
+
+/**
+ * Remove credentials from secure storage
+ * @returns {Promise<boolean>} - True if successful
+ */
+export async function removeSecureCredentials() {
+    try {
+        // Check if we're in Capacitor environment
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SecureStorage) {
+            await window.Capacitor.Plugins.SecureStorage.remove({ key: 'auth_credentials' });
+            console.log('Credentials removed securely');
+            return true;
+        } else {
+            // Fallback for web/development
+            localStorage.removeItem('auth-username');
+            localStorage.removeItem('auth-password');
+            return true;
+        }
+    } catch (error) {
+        console.error('Failed to remove credentials:', error);
+        return false;
+    }
+}
 
 /**
  * Updates the server URL based on IP and port inputs
  */
-export function updateServerUrl() {
+export async function updateServerUrl() {
     const host = serverIpInput.value.trim(); // now can be IP or domain
     let port = serverPortInput.value.trim();
     const sslSwitch = document.getElementById('server-ssl-switch');
@@ -327,10 +400,8 @@ export function updateServerUrl() {
     const authPassword = document.getElementById('auth-password');
     
     if (useAuthSwitch && useAuthSwitch.checked && authUsername && authPassword) {
-        localStorage.setItem('auth-username', authUsername.value);
-        // Don't store password in plain text - in a real app you'd want to encrypt this
-        // For simplicity, we'll store it base64 encoded (this is NOT secure, just obfuscated)
-        localStorage.setItem('auth-password', btoa(authPassword.value));
+        // Use secure storage instead of localStorage
+        await storeSecureCredentials(authUsername.value, authPassword.value);
     }
     
     fetchAvailableModels();
@@ -1195,14 +1266,12 @@ export function getAvailableModels() {
 /**
  * Loads saved server settings from localStorage
  */
-export function loadServerSettings() {
+export async function loadServerSettings() {
     const savedIp = localStorage.getItem('serverIp');
     const savedPort = localStorage.getItem('serverPort');
     const savedSSL = localStorage.getItem('serverSSL') === 'true';
     const savedUseAuth = localStorage.getItem('use-auth') === 'true';
-    const savedAuthUsername = localStorage.getItem('auth-username');
-    const savedAuthPassword = localStorage.getItem('auth-password');
-
+    
     console.log('Loading server settings, auth enabled:', savedUseAuth);
 
     if (serverIpInput && serverPortInput) {
@@ -1223,14 +1292,13 @@ export function loadServerSettings() {
             useAuthSwitch.checked = savedUseAuth;
             authFields.classList.toggle('hidden', !savedUseAuth);
             
-            if (savedAuthUsername) authUsername.value = savedAuthUsername;
-            if (savedAuthPassword) {
-                try {
-                    // Decode the base64 password
-                    authPassword.value = atob(savedAuthPassword);
-                    console.log('Restored password from localStorage');
-                } catch (e) {
-                    console.error("Failed to decode saved password", e);
+            if (savedUseAuth) {
+                // Get credentials from secure storage
+                const credentials = await getSecureCredentials();
+                if (credentials.username) authUsername.value = credentials.username;
+                if (credentials.password) {
+                    authPassword.value = credentials.password;
+                    console.log('Restored password from secure storage');
                 }
             }
             
@@ -1239,7 +1307,7 @@ export function loadServerSettings() {
                 localStorage.setItem('use-auth', 'true');
                 
                 // Make sure the auth elements have the correct values before we try to use them
-                const testAuthHeaders = getAuthHeaders();
+                const testAuthHeaders = await getAuthHeaders();
                 console.log('Test auth headers after loading settings:', 
                     Object.keys(testAuthHeaders).includes('Authorization') ? 'Auth header present' : 'No auth header');
             }

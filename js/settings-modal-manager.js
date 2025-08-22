@@ -628,7 +628,7 @@ function initializeManualInputFocus() {
         const authUsername = document.getElementById('auth-username');
         const authPassword = document.getElementById('auth-password');
         const authErrorMessage = document.getElementById('auth-error-message');
-        
+
         if (useAuthSwitch && authFields && !useAuthSwitch.dataset.handlerAttached) {
             // Set initial state based on stored preference
             const useAuth = localStorage.getItem('use-auth') === 'true';
@@ -645,18 +645,22 @@ function initializeManualInputFocus() {
                 // Save to localStorage
                 localStorage.setItem('use-auth', isEnabled ? 'true' : 'false');
                 
-                // If turning off auth, clear credentials from localStorage to prevent them being used
+                // If turning off auth, clear credentials from secure storage
                 if (!isEnabled) {
-                    localStorage.removeItem('auth-username');
-                    localStorage.removeItem('auth-password');
-                    
-                    // Clear input fields
-                    if (authUsername) authUsername.value = '';
-                    if (authPassword) authPassword.value = '';
+                    import('./api-service.js').then(module => {
+                        module.removeSecureCredentials();
+                        
+                        // Clear input fields
+                        if (authUsername) authUsername.value = '';
+                        if (authPassword) authPassword.value = '';
+                    });
                 } else if (isEnabled && authUsername && authPassword) {
                     // If turning on auth, immediately save current values if they exist
-                    if (authUsername.value) localStorage.setItem('auth-username', authUsername.value);
-                    if (authPassword.value) localStorage.setItem('auth-password', btoa(authPassword.value));
+                    if (authUsername.value && authPassword.value) {
+                        import('./api-service.js').then(module => {
+                            module.storeSecureCredentials(authUsername.value, authPassword.value);
+                        });
+                    }
                 }
                 
                 // Clear any auth error messages when toggling
@@ -676,9 +680,11 @@ function initializeManualInputFocus() {
                 // Clear errors when credentials change
                 ['input', 'change'].forEach(event => {
                     authUsername.addEventListener(event, () => {
-                        // Save immediately to localStorage
-                        if (useAuthSwitch.checked && authUsername.value) {
-                            localStorage.setItem('auth-username', authUsername.value);
+                        // Save immediately to secure storage
+                        if (useAuthSwitch.checked && authUsername.value && authPassword.value) {
+                            import('./api-service.js').then(module => {
+                                module.storeSecureCredentials(authUsername.value, authPassword.value);
+                            });
                         }
                         
                         // Clear any visible errors
@@ -689,9 +695,11 @@ function initializeManualInputFocus() {
                     });
                     
                     authPassword.addEventListener(event, () => {
-                        // Save immediately to localStorage, but encoded
-                        if (useAuthSwitch.checked && authPassword.value) {
-                            localStorage.setItem('auth-password', btoa(authPassword.value));
+                        // Save immediately to secure storage
+                        if (useAuthSwitch.checked && authUsername.value && authPassword.value) {
+                            import('./api-service.js').then(module => {
+                                module.storeSecureCredentials(authUsername.value, authPassword.value);
+                            });
                         }
                         
                         // Clear any visible errors
@@ -703,7 +711,7 @@ function initializeManualInputFocus() {
                 });
             }
         }
-        
+
         // Add input handlers for auth fields to clear error messages when modified
         if (authUsername && authPassword && !authUsername.dataset.handlerAttached) {
             const clearAuthError = () => {
