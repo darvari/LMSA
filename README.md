@@ -232,26 +232,15 @@ npx cap sync
 ### Step 5: Configure Credential Storage
 To enable secure credential storage for authentication:
 
-1. Install the Capacitor Secure Storage plugin:
+1. Install the Secure Storage Cordova plugin:
    ```bash
-   npm install @capacitor-community/secure-storage
+   npm install cordova-plugin-secure-storage-echo
    npx cap sync
    ```
 
-2. Add plugin configuration to capacitor.config.json:
-   ```json
-   {
-     "plugins": {
-       "SecureStorage": {
-         "encrypt": true
-       }
-     }
-   }
-   ```
+2. The app uses this plugin to securely store authentication credentials.
 
-3. The app uses this plugin to securely store authentication credentials.
-
-4. The necessary permissions are automatically added to AndroidManifest.xml when you run `npx cap sync`:
+3. The necessary permissions are automatically added to AndroidManifest.xml when you run `npx cap sync`:
    - INTERNET permission for network connectivity
    - Optional biometric permissions for secure storage access (if available on device)
 
