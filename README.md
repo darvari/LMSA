@@ -131,14 +131,7 @@ LMSA connects to LM Studio running on your computer, allowing you to:
 
 ## 🚀 Getting Started
 
-### Option 1: Install from Google Play
-1. Download LMSA from [Google Play Store](https://play.google.com/store/apps/details?id=com.lmsa.app)
-2. Start LM Studio and load a model on your computer
-3. Start the LM Studio server
-4. Open the app and enter the server IP and port in Settings
-5. Begin chatting immediately!
-
-### Option 2: Run Locally in Your Browser
+### Run Locally in Your Browser
 
 You can run LMSA as a web app for local testing and development:
 
@@ -256,40 +249,7 @@ To enable secure credential storage for authentication:
    }
    ```
 
-3. The app uses this plugin to securely store authentication credentials in `api-service.js`:
-
-   ```javascript
-   // Store credentials securely
-   export async function storeSecureCredentials(username, password) {
-     try {
-       if (window.Capacitor && window.Capacitor.Plugins.SecureStorage) {
-         await window.Capacitor.Plugins.SecureStorage.set({
-           key: 'auth_credentials',
-           value: JSON.stringify({ username, password })
-         });
-       }
-     } catch (error) {
-       console.error('Failed to store credentials:', error);
-     }
-   }
-   
-   // Retrieve credentials securely
-   export async function getSecureCredentials() {
-     try {
-       if (window.Capacitor && window.Capacitor.Plugins.SecureStorage) {
-         const result = await window.Capacitor.Plugins.SecureStorage.get({ 
-           key: 'auth_credentials' 
-         });
-         if (result && result.value) {
-           return JSON.parse(result.value);
-         }
-       }
-     } catch (error) {
-       console.error('Failed to retrieve credentials:', error);
-     }
-     return { username: null, password: null };
-   }
-   ```
+3. The app uses this plugin to securely store authentication credentials.
 
 4. The necessary permissions are automatically added to AndroidManifest.xml when you run `npx cap sync`:
    - INTERNET permission for network connectivity
@@ -416,10 +376,9 @@ server {
 
 1. Open the LMSA app
 2. Go to Settings
-3. Enter your domain name (e.g., `your.domain.com`)
-4. Enable SSL/HTTPS toggle
-5. Enter username and password in the authentication section
-6. Test the connection
+3. Enter your domain name (e.g., `https://your.domain.com`)
+4. Enter username and password in the authentication section
+5. Test the connection
 
 ### Security Notes
 
@@ -431,15 +390,8 @@ server {
 
 ## 📥 Download Options
 
-### Recommended: Google Play Release
-**LMSA - Google Play**<br>
-**Publisher:** IslandApps<br>
-**Updates:** Regular feature, security and maintenance updates<br>
-[**Download Now →**](https://play.google.com/store/apps/details?id=com.lmsa.app)
-
-### Alternative: GitHub Release
-For those who prefer direct downloads or want to try the latest beta versions:<br>
-[**Get Latest APK from GitHub →**](https://github.com/techcow2/LMSA/releases)
+### GitHub Release
+This fork is not available on Google Play.  
 
 ## ⚠️ Disclaimer
 LMSA is a third-party application and is not affiliated with LM Studio or its developers. This app is independently developed to provide an Android front-end interface for interacting with LM Studio. Use of this app is at your own discretion, and the developers of LMSA are not responsible for any issues arising from its use.

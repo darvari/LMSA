@@ -15,8 +15,8 @@ lmsa-key.keystore
 node_modules/
 
 # Capacitor files
-capacitor.config.json
 www/
+capacitor.config.json
 
 # Build files
 dist/
