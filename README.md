@@ -202,7 +202,26 @@ Reload your bash profile:
 source ~/.bashrc
 ```
 
-### Step 4: Clone and Build the Project
+### Step 4: Generate a Keystore (if you don't have one)
+
+If you do not have a keystore file, generate one using the following command **from your project root**:
+
+```bash
+keytool -genkey -v -keystore android/lmsa-key.keystore -alias lmsa -keyalg RSA -keysize 2048 -validity 10000
+```
+
+If you see an error like `Key pair not generated, alias <lmsa> already exists`, you must delete the existing alias first:
+
+```bash
+keytool -delete -alias lmsa -keystore android/lmsa-key.keystore
+keytool -genkey -v -keystore android/lmsa-key.keystore -alias lmsa -keyalg RSA -keysize 2048 -validity 10000
+```
+
+- You will be prompted for a password and some identifying information.
+- Update your `capacitor.config.json`, `capacitor.config.json.signing`, and `android/app/build.gradle` with the correct password and alias.
+- **Ensure the keystore file is located at `android/lmsa-key.keystore` for signing to work.**
+
+### Step 5: Clone and Build the Project
 ```bash
 # Clone the repository
 git clone https://github.com/peterrhone/LMSA.git
@@ -229,7 +248,7 @@ npx cap add android
 npx cap sync
 ```
 
-### Step 5: Configure Credential Storage
+### Step 6: Configure Credential Storage
 To enable secure credential storage for authentication:
 
 1. Install the Secure Storage Cordova plugin:
@@ -246,17 +265,21 @@ To enable secure credential storage for authentication:
 
    You don't need to manually edit the AndroidManifest.xml file as Capacitor handles this automatically.
 
-### Step 6: Build and Run the APK
+### Step 7: Build and Run the APK
 ```bash
+# Build the project from the cli
+npx cap build android
+
+# Or alternatively In Android Studio:
+# 1. Click "Build" → "Build Bundle(s) / APK(s)" → "Build APK(s)"
+# 2. Find the APK in android/app/build/outputs/apk/debug/app-debug.apk
+
 # Open the project in Android Studio
 npx cap open android
 
-# In Android Studio:
-# 1. Click "Build" → "Build Bundle(s) / APK(s)" → "Build APK(s)"
-# 2. Find the APK in android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### Step 7: Install the APK on Your Device
+### Step 8: Install the APK on Your Device
 Connect your Android device via USB (with USB debugging enabled) and run:
 ```bash
 adb install ./android/app/build/outputs/apk/debug/app-debug.apk

@@ -10,7 +10,6 @@
   "description": "LM Studio Android - Client app for LM Studio",
   "version": "1.0.0",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "start": "npx serve ."
   },
