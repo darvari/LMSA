@@ -7,6 +7,7 @@ CLAUDE.md
 
 # Ignore Android build files
 android/
+android/idea
 .capacitor.config.local.json
 capacitor.config.json.signing
 lmsa-key.keystore
