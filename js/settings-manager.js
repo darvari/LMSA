@@ -463,6 +463,16 @@ export function saveThemeSetting() {
             welcomeToggle.checked = lightThemeEnabled;
         }
 
+        // Force refresh of sidebar styles
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            // Temporarily hide and show sidebar to force style recalculation
+            const originalDisplay = sidebar.style.display;
+            sidebar.style.display = 'none';
+            sidebar.offsetHeight; // Force reflow
+            sidebar.style.display = originalDisplay;
+        }
+
         // Dispatch a custom event to notify other components about the theme change
         const themeChangedEvent = new CustomEvent('themeChanged', {
             detail: { lightThemeEnabled }

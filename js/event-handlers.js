@@ -1277,6 +1277,11 @@ export function initializeEventHandlers() {
 
     // Initialize reset app button
     initializeResetAppButton();
+    
+    // Force re-initialization of reset app button after other components are loaded
+    setTimeout(() => {
+        initializeResetAppButton();
+    }, 500);
 
     // Initialize scroll event for messages container
     if (messagesContainer) {
@@ -1643,9 +1648,11 @@ function handleConfirmAction() {
         closeApplication();
         hideConfirmationModal();
     } else if (action === 'resetApp') {
+        console.log('RESET APP: Confirmation button clicked, executing reset...');
         // Make sure to hide the confirmation modal before resetting the app
         hideConfirmationModal();
         resetApp();
+        console.log('RESET APP: Reset function called');
     } else {
         // Default case - just hide the modal
         hideConfirmationModal();
