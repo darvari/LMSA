@@ -158,6 +158,16 @@ body.light-theme #sidebar * {
   color: #0f172a !important;
 }
 
+/* Ensure New Chat button text remains white in light mode */
+body.light-theme #sidebar #new-chat {
+  color: white !important;
+}
+
+body.light-theme #sidebar #new-chat span,
+body.light-theme #sidebar #new-chat i {
+  color: white !important;
+}
+
 body.light-theme #sidebar .menu-item {
   background-color: rgba(59, 130, 246, 0.05) !important;
   color: #0f172a !important;
