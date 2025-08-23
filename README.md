@@ -157,7 +157,7 @@ You can run LMSA as a web app for local testing and development:
    http://localhost:3000/index.html
    ```
 
-## 🛠️ Building the LMSA APK from Source
+## 🛠️ Building a LMSA Android .apk from source
 
 ### Prerequisites
 - Ubuntu 20.04 LTS or newer (or similar Linux distribution)
@@ -197,31 +197,12 @@ export PATH=$PATH:$ANDROID_SDK_ROOT/emulator
 export CAPACITOR_ANDROID_STUDIO_PATH=/path/to/android-studio/bin/studio # set path accordingly
 ```
 
-Reload your bash profile:
+Make these environment variables immediately become available in your open bash:
 ```bash
 source ~/.bashrc
 ```
 
-### Step 4: Generate a Keystore (if you don't have one)
-
-If you do not have a keystore file, generate one using the following command **from your project root**:
-
-```bash
-keytool -genkey -v -keystore android/lmsa-key.keystore -alias lmsa -keyalg RSA -keysize 2048 -validity 10000
-```
-
-If you see an error like `Key pair not generated, alias <lmsa> already exists`, you must delete the existing alias first:
-
-```bash
-keytool -delete -alias lmsa -keystore android/lmsa-key.keystore
-keytool -genkey -v -keystore android/lmsa-key.keystore -alias lmsa -keyalg RSA -keysize 2048 -validity 10000
-```
-
-- You will be prompted for a password and some identifying information.
-- Update your `capacitor.config.json`, `capacitor.config.json.signing`, and `android/app/build.gradle` with the correct password and alias.
-- **Ensure the keystore file is located at `android/lmsa-key.keystore` for signing to work.**
-
-### Step 5: Clone and Build the Project
+### Step 4: Clone and Build the Project
 ```bash
 # Clone the repository
 git clone https://github.com/peterrhone/LMSA.git
@@ -236,7 +217,7 @@ npx cap init LMSA com.example.lmsa --web-dir www
 
 # Prepare web files
 mkdir -p www
-cp -r index.html css js assets icon.png www/
+cp -r index.html css js icon.png www/
 
 # Add Android platform
 npx cap add android
@@ -247,6 +228,26 @@ npx cap add android
 # Sync project
 npx cap sync
 ```
+
+### Step 5: Generate a Keystore (if you don't have one)
+
+If you do not have a keystore file, generate one using the following command **from your project root**:
+
+```bash
+keytool -genkey -v -keystore android/lmsa-key.keystore -alias lmsa -keyalg RSA -keysize 2048 -validity 10000
+```
+
+If you see an error like `Key pair not generated, alias <lmsa> already exists`, delete the existing alias first:
+
+```bash
+keytool -delete -alias lmsa -keystore android/lmsa-key.keystore
+#and then repeat
+keytool -genkey -v -keystore android/lmsa-key.keystore -alias lmsa -keyalg RSA -keysize 2048 -validity 10000
+```
+
+- You will be prompted for a password and some identifying information.
+- Update your `capacitor.config.json`, `capacitor.config.json.signing`, and `android/app/build.gradle` with the correct password and alias.
+- **Ensure the keystore file is located at `android/lmsa-key.keystore` for signing to work.**
 
 ### Step 6: Configure Credential Storage
 To enable secure credential storage for authentication:
