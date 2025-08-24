@@ -208,6 +208,11 @@ source ~/.bashrc
 git clone https://github.com/peterrhone/LMSA.git
 cd LMSA
 
+# CAUTION execute the following commands in this exact order and make sure they don't fail
+# otherwise the below step of 'adding android platform' will complain and fail
+# in this case delete the LMSA folder structure, re-clone and start over
+
+
 # Install Capacitor dependencies
 npm install @capacitor/core @capacitor/cli @capacitor/android
 
