@@ -1599,44 +1599,8 @@ export function clearAllChats() {
     // Hide the scroll-to-bottom button when clearing all chats
     hideScrollToBottomButton();
 
-    // Check if the system prompt was user-created before clearing the active character
-    const isUserCreated = isUserCreatedPrompt();
-    const savedPrompt = localStorage.getItem('systemPrompt');
-
-    // Clear the active character
-    clearActiveCharacter();
-
-    // If the system prompt was user-created, restore it
-    if (isUserCreated && savedPrompt) {
-        console.log('System prompt was user-created, restoring it after clearing all chats');
-        // Set the system prompt but mark it as not from a character
-        import('./settings-manager.js').then(module => {
-            module.setSystemPrompt(savedPrompt, false);
-        });
-
-        // Update the UI to show the system prompt
-        const systemPromptInput = document.getElementById('system-prompt');
-        if (systemPromptInput) {
-            systemPromptInput.value = savedPrompt;
-        }
-
-        // Update the system prompt display
-        const systemPromptDisplay = document.getElementById('system-prompt-display');
-        if (systemPromptDisplay) {
-            systemPromptDisplay.textContent = savedPrompt;
-        }
-
-        // Update the system prompt preview
-        const systemPromptPreview = document.getElementById('system-prompt-preview');
-        if (systemPromptPreview) {
-            systemPromptPreview.textContent = savedPrompt;
-        }
-
-        // Force update any CodeMirror editor that might be showing the system prompt
-        if (window.systemPromptEditor && typeof window.systemPromptEditor.setValue === 'function') {
-            window.systemPromptEditor.setValue(savedPrompt);
-        }
-    }
+    // Character functionality has been removed - no character clearing needed
+    // System prompt remains unchanged when clearing chats
 
     // Import the settings modal manager to properly hide the settings modal
     import('./settings-modal-manager.js').then(module => {

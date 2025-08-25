@@ -463,6 +463,16 @@ export function saveThemeSetting() {
             welcomeToggle.checked = lightThemeEnabled;
         }
 
+        // Force refresh of sidebar styles
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            // Temporarily hide and show sidebar to force style recalculation
+            const originalDisplay = sidebar.style.display;
+            sidebar.style.display = 'none';
+            sidebar.offsetHeight; // Force reflow
+            sidebar.style.display = originalDisplay;
+        }
+
         // Dispatch a custom event to notify other components about the theme change
         const themeChangedEvent = new CustomEvent('themeChanged', {
             detail: { lightThemeEnabled }
@@ -665,29 +675,13 @@ export function setSystemPrompt(prompt) {
  * @returns {boolean} - True if a system prompt is set or a character is active, false otherwise
  */
 export function isSystemPromptSet() {
-    // Check if there's an active character
-    const hasActiveCharacter = activeCharacterId && activeCharacterId !== '';
-
-    // Check if the system prompt contains character information
-    const hasCharacterInfo = systemPrompt && (systemPrompt.includes('You are ') ||
-                               systemPrompt.includes('Stay in character at all times'));
-
+    // Character functionality has been removed - only check if system prompt exists
+    
     // Log the current state for debugging
     debugLog('isSystemPromptSet check - systemPrompt:', systemPrompt);
-    debugLog('hasActiveCharacter:', hasActiveCharacter, 'activeCharacterId:', activeCharacterId);
-    debugLog('hasCharacterInfo:', hasCharacterInfo);
 
-    // If there's an active character but the system prompt doesn't contain character info,
-    // we need to restore the character info
-    if (hasActiveCharacter && !hasCharacterInfo) {
-        debugLog('Active character found but system prompt does not contain character info. Will attempt to restore.');
-        // We'll return true here to ensure the system prompt is included,
-        // and we'll handle the restoration in the chat service
-        return true;
-    }
-
-    // Return true if either the system prompt is not empty or there's an active character
-    return systemPrompt !== '' || hasActiveCharacter;
+    // Return true if the system prompt is not empty
+    return systemPrompt !== '';
 }
 
 /**
