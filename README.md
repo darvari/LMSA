@@ -63,6 +63,29 @@ This project has transitioned to **open source** development.
 ### Development Information
 The project is now community-driven and open source. Development efforts are focused on collaborative community contributions, with regular updates and improvements available through GitHub releases.
 
+## 🤝 Contributing
+Contributions are welcome! If you'd like to contribute, please follow this general workflow:
+
+1.  **Fork & Clone**: Fork the repository and clone it to your local machine.
+2.  **Branch**: Create a new branch for your feature or bug fix.
+    ```bash
+    git checkout -b feature/your-new-feature
+    ```
+3.  **Make Changes**: Implement your changes in the new branch.
+4.  **Commit**: Commit your changes. If you have a commit message in a file (e.g., `commit_message.txt`), you can use it like this:
+    ```bash
+    # Stage all your changes
+    git add .
+
+    # Commit using the message from the file
+    git commit -F commit_message.txt
+    ```
+5.  **Push**: Push your branch to your fork.
+    ```bash
+    git push origin feature/your-new-feature
+    ```
+6.  **Pull Request**: Open a pull request from your fork to the main repository.
+
 ## 🌟 Features Overview
 
 ### Privacy & Security
@@ -208,29 +231,24 @@ source ~/.bashrc
 git clone https://github.com/peterrhone/LMSA.git
 cd LMSA
 
-# CAUTION execute the following commands in this exact order and make sure they don't fail
-# otherwise the below step of 'adding android platform' will complain and fail
-# in this case delete the LMSA folder structure, re-clone and start over
+# CAUTION: Execute the following commands in this exact order.
+# If any command fails, it may be best to delete the LMSA folder,
+# re-clone the repository, and start over to ensure a clean build.
 
+# Install all project dependencies from package.json
+npm install
 
-# Install Capacitor dependencies
-npm install @capacitor/core @capacitor/cli @capacitor/android
+# Initialize Capacitor, pointing to the project root as the web directory.
+# This command will also add the Android platform if it's not already present.
+npx cap init "LMSA" "com.lmsa.app" --web-dir .
 
-# Initialize Capacitor project
-npm init -y
-npx cap init LMSA com.example.lmsa --web-dir www
-
-# Prepare web files
-mkdir -p www
-cp -r index.html css js icon.png www/
-
-# Add Android platform
-npx cap add android
+# Sync the web assets with the native Android project
+npx cap sync
 
 # Configure for Android 8+ compatibility (SDK 26+)
 # Edit android/variables.gradle to set minSdkVersion = 26
 
-# Sync project
+# Sync project again after any manual changes
 npx cap sync
 ```
 
@@ -282,7 +300,6 @@ npx cap build android
 
 # Open the project in Android Studio
 npx cap open android
-
 ```
 
 ### Step 8: Install the APK on Your Device
