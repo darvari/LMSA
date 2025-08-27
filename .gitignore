@@ -15,10 +15,6 @@ lmsa-key.keystore
 # Ignore Node.js dependencies
 node_modules/
 
-# Capacitor files
-www/
-capacitor.config.json
-
 # Build files
 dist/
 build/

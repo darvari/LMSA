@@ -49,12 +49,20 @@
 - Improved overall memory usage monitoring
 - Implemented proper cleanup of resources during component unmounting
 
-## Build & Development Improvements
+## Syntax Highlighting
 
-### Build Process
-- Created unified sync script (`sync_all.js`) that combines JS file sync and Android build
-- Streamlined the development workflow for easier testing and deployment
-- Improved synchronization between web and Android versions
+### Code Block Syntax Highlighting
+- Added local syntax highlighting for code blocks using highlight.js
+- Implemented automatic detection and highlighting of multiple programming languages
+- Added support for Python, JavaScript, JSON, XML, and other common languages
+- Integrated GitHub Dark theme for consistent styling with the app's dark theme
+- Created mutation observer to automatically highlight dynamically added code blocks
+- Optimized loading with minified highlight.js library for better performance
+- Added proper language detection and fallback handling for unknown languages
+- Implemented duplicate processing prevention to avoid console spam
+- Cleaned up unused highlight.js files to reduce bundle size
+
+## Build & Development Improvements
 
 ### Error Handling
 - Added better error handling for API calls

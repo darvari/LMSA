@@ -238,78 +238,40 @@ Apply the changes:
 source ~/.bashrc
 ```
 
-### Step 2: Create Project Configuration Files
-
-If starting from minimal structure, create the necessary configuration files:
-
-#### Create package.json
-```bash
-cat > package.json << 'EOF'
-{
-  "name": "lmsa",
-  "version": "1.0.0",
-  "description": "LM Studio Android - Client app for LM Studio",
-  "main": "index.js",
-  "scripts": {
-    "start": "npx serve ."
-  },
-  "dependencies": {
-    "@capacitor/android": "^5.0.0",
-    "@capacitor/cli": "^5.0.0",
-    "@capacitor/core": "^5.0.0",
-    "@capacitor/preferences": "^5.0.0",
-    "cordova-plugin-secure-storage-echo": "^5.1.1",
-    "highlight.js": "^11.11.1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/peterrhone/LMSA.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/peterrhone/LMSA/issues"
-  },
-  "homepage": "https://github.com/peterrhone/LMSA#readme"
-}
-EOF
-```
-
-#### Create capacitor.config.json
-```bash
-cat > capacitor.config.json << 'EOF'
-{
-  "appId": "com.lmsa.app",
-  "appName": "LMSA",
-  "webDir": ".",
-  "server": {
-    "androidScheme": "https"
-  }
-}
-EOF
-```
-
-### Step 3: Install Dependencies
+### Step 1: Install Dependencies
 
 Install all required Node.js dependencies:
 ```bash
 npm install
 ```
 
-### Step 4: Initialize Capacitor
+### Step 2: Create Web Directory Structure
+
+Create a `www` directory and sync your root web assets (this keeps files in root but provides Capacitor with proper web assets):
+```bash
+# Create www directory
+mkdir www
+
+# Copy root files to www (or use the sync script)
+cp -r index.html css js icon.png www/
+
+# Or use the provided sync script
+./sync_all.sh
+```
+
+### Step 3: Initialize Capacitor
 
 Initialize Capacitor for your project:
 ```bash
-npx cap init "LMSA" "com.lmsa.app" --web-dir .
+npx cap init "LMSA" "com.lmsa.app" --web-dir www
 ```
 
 This command:
-- Creates the Capacitor configuration
+- Creates the Capacitor configuration with HTTPS server settings
 - Sets up the native Android project structure
 - Links your web assets to the native project
 
-### Step 5: Add Android Platform
+### Step 4: Add Android Platform
 
 Add the Android platform to your project:
 ```bash
@@ -318,7 +280,7 @@ npx cap add android
 
 This creates the `android/` directory with the native Android project files.
 
-### Step 6: Sync Web Assets
+### Step 5: Sync Web Assets
 
 Sync your web assets (HTML, CSS, JS) to the native Android project:
 ```bash
@@ -330,11 +292,15 @@ This command:
 - Updates native dependencies
 - Ensures plugins are properly configured
 
-### Step 7: Build the Android APK
+### Step 6: Build the Android APK
 
-#### Option A: Build from Command Line
+#### Option A: Build Debug APK from Command Line (Recommended)
 ```bash
-npx cap build android
+# Navigate to android directory
+cd android
+
+# Build debug APK
+./gradlew assembleDebug
 ```
 
 #### Option B: Build Using Android Studio
@@ -347,7 +313,20 @@ npx cap build android
 
 The built APK will be located at:
 - **Debug APK**: `android/app/build/outputs/apk/debug/app-debug.apk`
-- **Release APK**: `android/app/build/outputs/apk/release/app-release.apk` (requires signing)
+
+### Step 7: Development Workflow
+
+After making changes to your web files (HTML, CSS, JS), sync them to the Android project and rebuild:
+
+```bash
+# Sync web assets to Android project
+npx cap sync android
+
+# Rebuild debug APK
+cd android && ./gradlew assembleDebug
+```
+
+This ensures your latest changes are included in the APK.
 
 ### Step 8: Sign the APK (for Release Builds)
 
@@ -385,6 +364,8 @@ EOF
 ```bash
 npx cap build android --release
 ```
+
+**Note:** For development and testing, use debug builds (Step 6). Release builds are only needed for production distribution.
 
 ### Step 9: Install APK on Device
 
