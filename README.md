@@ -180,133 +180,288 @@ You can run LMSA as a web app for local testing and development:
    http://localhost:3000/index.html
    ```
 
-## 🛠️ Building a LMSA Android .apk from source
+## 🛠️ Building LMSA Android APK from Source
+
+This guide provides comprehensive instructions for building the LMSA Android APK using Capacitor, starting from a minimal project structure containing only the essential web assets.
 
 ### Prerequisites
-- Ubuntu 20.04 LTS or newer (or similar Linux distribution)
-- Node.js v16+ and npm v8+
-- JDK 11+
-- Android SDK 30+ (via Android Studio)
-- Git
 
-### Step 1: Install Required Dependencies
+Before building, ensure you have the following installed on your system:
+
+- **Node.js v16+ and npm v8+**
+  ```bash
+  # Install Node.js (Ubuntu/Debian)
+  curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+  sudo apt update && sudo apt install -y nodejs
+
+  # Verify installation
+  node --version  # Should be v16.x or higher
+  npm --version   # Should be v8.x or higher
+  ```
+
+- **Java Development Kit (JDK) 11+**
+  ```bash
+  # Install OpenJDK (Ubuntu/Debian)
+  sudo apt update && sudo apt install -y openjdk-11-jdk
+
+  # Verify installation
+  java --version  # Should be v11.x or higher
+  ```
+
+- **Android Studio and Android SDK**
+  1. Download and install Android Studio from [developer.android.com/studio](https://developer.android.com/studio)
+  2. During installation, ensure "Android SDK" and "Android SDK Platform-Tools" are selected
+  3. After installation, open Android Studio and go to **Tools → SDK Manager**
+  4. Install **Android SDK Platform 30+** and **Android Build Tools 30.0.3+**
+  5. Install **Android SDK Command-line Tools** from SDK Manager
+
+- **Git**
+  ```bash
+  sudo apt update && sudo apt install -y git
+  ```
+
+### Step 1: Set Up Environment Variables
+
+Add the following to your `~/.bashrc` or `~/.profile`:
+
 ```bash
-# Install Node.js and npm if not installed
-curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-sudo apt update
-sudo apt install -y nodejs openjdk-11-jdk git
-
-# Verify installations
-node --version  # Should be v16.x or higher
-npm --version   # Should be v8.x or higher
-java --version  # Should be v11.x or higher
-```
-
-### Step 2: Install Android Studio and Android SDK
-1. Download and install Android Studio from [developer.android.com](https://developer.android.com/studio)
-2. During installation, ensure "Android SDK" and "Android SDK Platform-Tools" are selected
-3. After installation, open Android Studio and go to "SDK Manager"
-4. Install Android SDK Platform 30 (or higher) and Android Build Tools 30.0.3 (or higher)
-
-### Step 3: Set Up Environment Variables
-Add the following to your `~/.bashrc` file:
-
-```bash
-# Android SDK paths
+# Android SDK paths (adjust paths according to your Android Studio installation)
 export ANDROID_SDK_ROOT=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_SDK_ROOT/tools/bin
 export PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools
 export PATH=$PATH:$ANDROID_SDK_ROOT/emulator
-export CAPACITOR_ANDROID_STUDIO_PATH=/path/to/android-studio/bin/studio # set path accordingly
+export CAPACITOR_ANDROID_STUDIO_PATH=$HOME/android-studio/bin/studio
 ```
 
-Make these environment variables immediately become available in your open bash:
+Apply the changes:
 ```bash
 source ~/.bashrc
 ```
 
-### Step 4: Clone and Build the Project
+### Step 2: Create Project Configuration Files
+
+If starting from minimal structure, create the necessary configuration files:
+
+#### Create package.json
 ```bash
-# Clone the repository
-git clone https://github.com/peterrhone/LMSA.git
-cd LMSA
+cat > package.json << 'EOF'
+{
+  "name": "lmsa",
+  "version": "1.0.0",
+  "description": "LM Studio Android - Client app for LM Studio",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "dependencies": {
+    "@capacitor/android": "^5.0.0",
+    "@capacitor/cli": "^5.0.0",
+    "@capacitor/core": "^5.0.0",
+    "@capacitor/preferences": "^5.0.0",
+    "cordova-plugin-secure-storage-echo": "^5.1.1",
+    "highlight.js": "^11.11.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/peterrhone/LMSA.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/peterrhone/LMSA/issues"
+  },
+  "homepage": "https://github.com/peterrhone/LMSA#readme"
+}
+EOF
+```
 
-# CAUTION: Execute the following commands in this exact order.
-# If any command fails, it may be best to delete the LMSA folder,
-# re-clone the repository, and start over to ensure a clean build.
+#### Create capacitor.config.json
+```bash
+cat > capacitor.config.json << 'EOF'
+{
+  "appId": "com.lmsa.app",
+  "appName": "LMSA",
+  "webDir": ".",
+  "server": {
+    "androidScheme": "https"
+  }
+}
+EOF
+```
 
-# Install all project dependencies from package.json
+### Step 3: Install Dependencies
+
+Install all required Node.js dependencies:
+```bash
 npm install
+```
 
-# Initialize Capacitor, pointing to the project root as the web directory.
-# This command will also add the Android platform if it's not already present.
+### Step 4: Initialize Capacitor
+
+Initialize Capacitor for your project:
+```bash
 npx cap init "LMSA" "com.lmsa.app" --web-dir .
-
-# Sync the web assets with the native Android project
-npx cap sync
-
-# Configure for Android 8+ compatibility (SDK 26+)
-# Edit android/variables.gradle to set minSdkVersion = 26
-
-# Sync project again after any manual changes
-npx cap sync
 ```
 
-### Step 5: Generate a Keystore (if you don't have one)
+This command:
+- Creates the Capacitor configuration
+- Sets up the native Android project structure
+- Links your web assets to the native project
 
-If you do not have a keystore file, generate one using the following command **from your project root**:
+### Step 5: Add Android Platform
 
+Add the Android platform to your project:
 ```bash
-keytool -genkey -v -keystore android/lmsa-key.keystore -alias lmsa -keyalg RSA -keysize 2048 -validity 10000
+npx cap add android
 ```
 
-If you see an error like `Key pair not generated, alias <lmsa> already exists`, delete the existing alias first:
+This creates the `android/` directory with the native Android project files.
 
+### Step 6: Sync Web Assets
+
+Sync your web assets (HTML, CSS, JS) to the native Android project:
 ```bash
-keytool -delete -alias lmsa -keystore android/lmsa-key.keystore
-#and then repeat
-keytool -genkey -v -keystore android/lmsa-key.keystore -alias lmsa -keyalg RSA -keysize 2048 -validity 10000
+npx cap sync
 ```
 
-- You will be prompted for a password and some identifying information.
-- Update your `capacitor.config.json`, `capacitor.config.json.signing`, and `android/app/build.gradle` with the correct password and alias.
-- **Ensure the keystore file is located at `android/lmsa-key.keystore` for signing to work.**
+This command:
+- Copies your web files to `android/app/src/main/assets/public/`
+- Updates native dependencies
+- Ensures plugins are properly configured
 
-### Step 6: Configure Credential Storage
-To enable secure credential storage for authentication:
+### Step 7: Build the Android APK
 
-1. Install the Secure Storage Cordova plugin:
+#### Option A: Build from Command Line
+```bash
+npx cap build android
+```
+
+#### Option B: Build Using Android Studio
+1. Open the project in Android Studio:
    ```bash
-   npm install cordova-plugin-secure-storage-echo
-   npx cap sync
+   npx cap open android
+   ```
+2. In Android Studio, click **Build → Build Bundle(s) / APK(s) → Build APK(s)**
+3. Wait for the build to complete
+
+The built APK will be located at:
+- **Debug APK**: `android/app/build/outputs/apk/debug/app-debug.apk`
+- **Release APK**: `android/app/build/outputs/apk/release/app-release.apk` (requires signing)
+
+### Step 8: Sign the APK (for Release Builds)
+
+For production releases, you need to sign your APK:
+
+#### Generate a Keystore
+```bash
+# Create keystore in android directory
+keytool -genkey -v -keystore android/lmsa-key.keystore -alias lmsa -keyalg RSA -keysize 2048 -validity 10000
+```
+
+You'll be prompted for:
+- Keystore password
+- Key alias password (use same as keystore)
+- Your name, organization, etc.
+
+#### Configure Signing in Capacitor
+Create `capacitor.config.json.signing`:
+```bash
+cat > capacitor.config.json.signing << 'EOF'
+{
+  "android": {
+    "release": {
+      "keystore": "android/lmsa-key.keystore",
+      "storePassword": "your_keystore_password",
+      "alias": "lmsa",
+      "password": "your_key_password"
+    }
+  }
+}
+EOF
+```
+
+#### Build Signed Release APK
+```bash
+npx cap build android --release
+```
+
+### Step 9: Install APK on Device
+
+#### Using ADB (Android Debug Bridge)
+1. Enable USB debugging on your Android device
+2. Connect device via USB
+3. Install the APK:
+   ```bash
+   # For debug APK
+   adb install android/app/build/outputs/apk/debug/app-debug.apk
+
+   # For release APK
+   adb install android/app/build/outputs/apk/release/app-release.apk
    ```
 
-2. The app uses this plugin to securely store authentication credentials.
+#### Manual Installation
+1. Transfer the APK file to your Android device
+2. Enable "Install from unknown sources" in device settings
+3. Open the APK file on your device to install
 
-3. The necessary permissions are automatically added to AndroidManifest.xml when you run `npx cap sync`:
-   - INTERNET permission for network connectivity
-   - Optional biometric permissions for secure storage access (if available on device)
+### Troubleshooting
 
-   You don't need to manually edit the AndroidManifest.xml file as Capacitor handles this automatically.
+#### Common Issues
 
-### Step 7: Build and Run the APK
+**"Command 'npx' not found"**
 ```bash
-# Build the project from the cli
-npx cap build android
-
-# Or alternatively In Android Studio:
-# 1. Click "Build" → "Build Bundle(s) / APK(s)" → "Build APK(s)"
-# 2. Find the APK in android/app/build/outputs/apk/debug/app-debug.apk
-
-# Open the project in Android Studio
-npx cap open android
+# Install npx globally
+npm install -g npx
 ```
 
-### Step 8: Install the APK on Your Device
-Connect your Android device via USB (with USB debugging enabled) and run:
+**"Android SDK not found"**
+- Verify `ANDROID_SDK_ROOT` is set correctly
+- Reinstall Android SDK through Android Studio
+
+**"Capacitor could not find the web assets"**
+- Ensure `index.html` exists in the project root
+- Run `npx cap sync` again
+
+**Build fails with Gradle errors**
+- Clean and rebuild: `cd android && ./gradlew clean && cd ..`
+- Update Gradle wrapper: `cd android && ./gradlew wrapper --gradle-version=8.0`
+
+**Plugin installation issues**
 ```bash
-adb install ./android/app/build/outputs/apk/debug/app-debug.apk
+# Reinstall plugins
+npm uninstall cordova-plugin-secure-storage-echo
+npm install cordova-plugin-secure-storage-echo
+npx cap sync
 ```
+
+### Additional Configuration
+
+#### Enable Secure Storage Plugin
+The app uses secure storage for authentication credentials. This is automatically configured when you run `npx cap sync`, but you can verify the setup:
+
+```bash
+# Check if plugin is installed
+npx cap plugin ls
+```
+
+#### Customize App Icon and Splash Screen
+1. Replace `icon.png` with your custom icon (512x512 recommended)
+2. Run `npx cap sync` to update the native project
+3. Rebuild the APK
+
+### Next Steps
+
+After successfully building and installing the APK:
+1. Launch the LMSA app on your Android device
+2. Configure connection to your LM Studio server
+3. Start chatting with your AI models
+
+For development and testing, you can also run the app in a browser using:
+```bash
+npm start
+```
+Then navigate to `http://localhost:3000/index.html`
 
 ## 🌐 Remote Access & Nginx Configuration
 
