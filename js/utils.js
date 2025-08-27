@@ -606,8 +606,7 @@ export function initializeCodeMirror(element) {
             codeContent = decodeHtmlEntities(codeContent);
 
             // Check for special HTML markers and clean them up
-            const hasHtmlMarkers = codeContent.includes('[HTML_CODE_BLOCK') ||
-                                 codeContent.includes('[HTMLCODEBLOCK');
+            const hasHtmlMarkers = codeContent.includes('[HTML_CODE_BLOCK') || codeContent.includes('[HTMLCODEBLOCK');
 
             if (hasHtmlMarkers) {
                 // Find and extract content between markers
@@ -645,15 +644,187 @@ export function initializeCodeMirror(element) {
 
             // Update the block content
             block.textContent = codeContent;
+
+            // Apply syntax highlighting if hljs is available
+            if (typeof hljs !== 'undefined') {
+                console.log(`Applying syntax highlighting to ${language} code block`);
+                hljs.highlightElement(block);
+            } else {
+                console.log('hljs not available, will retry...');
+                // Try again after a short delay in case hljs is still loading
+                setTimeout(() => {
+                    if (typeof hljs !== 'undefined') {
+                        console.log(`Retrying syntax highlighting for ${language} code block`);
+                        hljs.highlightElement(block);
+                    } else {
+                        // Final retry after longer delay
+                        setTimeout(() => {
+                            if (typeof hljs !== 'undefined') {
+                                console.log(`Final retry for ${language} code block`);
+                                hljs.highlightElement(block);
+                            } else {
+                                console.error('hljs failed to load after multiple attempts');
+                            }
+                        }, 500);
+                    }
+                }, 100);
+            }
         });
     }, 50);
 }
 
 /**
- * Converts HTML content to formatted plain text, preserving paragraph breaks and line spacing
- * @param {HTMLElement|string} content - The HTML element or HTML string to convert
- * @returns {string} - Formatted plain text with preserved spacing
+ * Sets innerHTML content and processes code blocks for syntax highlighting
+ * @param {HTMLElement} element - The element to set content on
+ * @param {string} html - The HTML content to set
  */
+export function setInnerHTMLWithCodeHighlighting(element, html) {
+    element.innerHTML = html;
+    // Process code blocks after a short delay to ensure DOM is updated
+    setTimeout(() => {
+        processCodeBlocksInContainer(element);
+    }, 10);
+}
+
+/**
+ * Processes code blocks in a given container element for syntax highlighting
+ * @param {HTMLElement} contentContainer - The container element to process
+ */
+/**
+ * Processes code blocks in a given container element for syntax highlighting
+ * @param {HTMLElement} contentContainer - The container element to process
+ */
+function processCodeBlocksInContainer(contentContainer) {
+    if (!contentContainer) return;
+
+    const codeBlocks = contentContainer.querySelectorAll('pre code');
+
+    if (!codeBlocks.length) return;
+
+    codeBlocks.forEach((block, index) => {
+        // Skip if already highlighted
+        if (block.dataset.highlighted === 'yes') {
+            return;
+        }
+
+        // Skip if block doesn't have content
+        if (!block.textContent || block.textContent.trim() === '') {
+            return;
+        }
+
+        const pre = block.parentNode;
+        // Extract language properly - remove 'language-' and 'hljs' from className
+        const language = block.className
+            .replace('language-', '')
+            .replace('hljs', '')
+            .trim() || 'plaintext';
+
+        // Add language as data attribute for styling
+        pre.setAttribute('data-language', language);
+        pre.setAttribute('data-multiline', 'true');
+
+        // Get the code content, preserving whitespace and newlines
+        let codeContent = block.innerHTML;
+
+        // Process block content
+        codeContent = codeContent.replace(/<br\s*\/?>/g, '\n');
+        codeContent = decodeHtmlEntities(codeContent);
+
+        // Check for special HTML markers and clean them up
+        const hasHtmlMarkers = codeContent.includes('[HTML_CODE_BLOCK') || codeContent.includes('[HTMLCODEBLOCK');
+
+        if (hasHtmlMarkers) {
+            // Find and extract content between markers
+            let startMarker = -1, endMarker = -1, markerLength = 0;
+
+            if (codeContent.includes('[HTML_CODE_BLOCK_START]')) {
+                startMarker = codeContent.indexOf('[HTML_CODE_BLOCK_START]');
+                endMarker = codeContent.indexOf('[HTML_CODE_BLOCK_END]');
+                markerLength = 22;
+            } else if (codeContent.includes('[HTMLCODEBLOCK]')) {
+                startMarker = codeContent.indexOf('[HTMLCODEBLOCK]');
+                endMarker = codeContent.indexOf('[/HTMLCODEBLOCK]');
+                markerLength = 14;
+            } else if (codeContent.includes('[HTML_CODE_BLOCK]')) {
+                startMarker = codeContent.indexOf('[HTML_CODE_BLOCK]');
+                endMarker = codeContent.indexOf('[/HTML_CODE_BLOCK]');
+                markerLength = 17;
+            }
+
+            if (startMarker !== -1 && endMarker !== -1) {
+                codeContent = codeContent.substring(startMarker + markerLength, endMarker);
+            }
+        }
+
+        // Clean up any remaining markers
+        codeContent = codeContent
+            .replace(/\[HTMLCODEBLOCKSTART\]/g, '')
+            .replace(/\[HTMLCODEBLOCKEND\]/g, '')
+            .replace(/\[HTML_CODE_BLOCK\]/g, '')
+            .replace(/\[\/HTML_CODE_BLOCK\]/g, '')
+            .replace(/\[HTMLCODEBLOCK\]/g, '')
+            .replace(/\[\/HTMLCODEBLOCK\]/g, '')
+            .replace(/\[HTML_CODE_BLOCK_EXACT\]/g, '')
+            .replace(/\[\/HTML_CODE_BLOCK_EXACT\]/g, '');
+
+        // Update the block content
+        block.textContent = codeContent;
+
+        // Apply syntax highlighting with retry
+        const applyHighlighting = () => {
+            if (typeof hljs !== 'undefined') {
+                hljs.highlightElement(block);
+                return true;
+            }
+            return false;
+        };
+
+        // Try immediately
+        if (!applyHighlighting()) {
+            // Try again after a short delay in case hljs is still loading
+            setTimeout(() => {
+                if (!applyHighlighting()) {
+                    // Final retry after longer delay
+                    setTimeout(() => {
+                        applyHighlighting();
+                    }, 500);
+                }
+            }, 100);
+        }
+    });
+}
+
+/**
+ * Initializes a mutation observer to automatically process code blocks when content changes
+ */
+export function initializeCodeBlockObserver() {
+    // Create a mutation observer to watch for content changes
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                // Check if any of the added nodes contain code blocks
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        // Check if this element or its children contain code blocks
+                        const codeBlocks = node.querySelectorAll ? node.querySelectorAll('pre code') : [];
+                        if (codeBlocks.length > 0 || (node.tagName === 'PRE' && node.querySelector('code'))) {
+                            // Process code blocks in this element
+                            setTimeout(() => {
+                                processCodeBlocksInContainer(node);
+                            }, 10);
+                        }
+                    }
+                });
+            }
+        });
+    });
+
+    // Start observing the document body for changes
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+}
 export function htmlToFormattedText(content) {
     let element;
     

@@ -3,7 +3,7 @@ import { messagesContainer, userInput, loadedModelDisplay } from './dom-elements
 import { appendMessage, showLoadingIndicator, hideLoadingIndicator, toggleSendStopButton, hideWelcomeMessage, showWelcomeMessage, toggleSidebar, showConfirmationModal, hideConfirmationModal, updateChatHistoryScroll } from './ui-manager.js';
 import { getApiUrl, getAvailableModels, isServerRunning, fetchAvailableModels, getAuthHeaders } from './api-service.js';
 import { getSystemPrompt, getTemperature, isSystemPromptSet, getAutoGenerateTitles, isUserCreatedPrompt, getHideThinking, getReasoningTimeout } from './settings-manager.js';
-import { sanitizeInput, basicSanitizeInput, initializeCodeMirror, scrollToBottom, handleScroll, debugLog, debugError, filterToEnglishCharacters, processCodeBlocks, decodeHtmlEntities, refreshAllCodeBlocks, containsCodeBlocks, containsCodeBlocksOutsideThinkTags, saveCurrentChatBeforeRefresh, removeThinkTags, hideScrollToBottomButton } from './utils.js';
+import { sanitizeInput, basicSanitizeInput, initializeCodeMirror, scrollToBottom, handleScroll, debugLog, debugError, filterToEnglishCharacters, processCodeBlocks, decodeHtmlEntities, refreshAllCodeBlocks, containsCodeBlocks, containsCodeBlocksOutsideThinkTags, saveCurrentChatBeforeRefresh, removeThinkTags, hideScrollToBottomButton, setInnerHTMLWithCodeHighlighting } from './utils.js';
 import { setActionToPerform } from './shared-state.js';
 
 let currentChatId = Date.now();
@@ -607,7 +607,7 @@ async function generateAIResponseInternal(userMessage, fileContents = []) {
                                             if (contentAfterThink !== "") {
                                                 // We have content after </think>, show ONLY that content (streaming)
                                                 const processedContent = aiMessage.replace(/<think>[\s\S]*?<\/think>/g, '');
-                                                contentContainer.innerHTML = basicSanitizeInput(processedContent);
+                                                setInnerHTMLWithCodeHighlighting(contentContainer, basicSanitizeInput(processedContent));
 
                                                 // Remove any thinking indicator that might exist
                                                 const thinkingIndicator = contentContainer.querySelector('.thinking-indicator');
@@ -653,18 +653,19 @@ async function generateAIResponseInternal(userMessage, fileContents = []) {
                                                 // Hide thinking is enabled but we're not in thinking section and no content after think
                                                 // This means thinking tags are complete but no content after them yet
                                                 const processedContent = aiMessage.replace(/<think>[\s\S]*?<\/think>/g, '');
-                                                contentContainer.innerHTML = basicSanitizeInput(processedContent);
+                                                setInnerHTMLWithCodeHighlighting(contentContainer, basicSanitizeInput(processedContent));
                                             }
                                         } else {
                                             // Hide thinking is disabled, show everything including thinking tags (streaming)
-                                            contentContainer.innerHTML = sanitizeInput(aiMessage);
+                                            setInnerHTMLWithCodeHighlighting(contentContainer, sanitizeInput(aiMessage));
                                         }
 
                                         // Mark this message as having thinking
                                         aiMessageElement.dataset.hasThinking = 'true';
                                     } else if (contentContainer) {
                                         // For non-reasoning models, apply basic sanitization
-                                        contentContainer.innerHTML = basicSanitizeInput(aiMessage);
+                                        setInnerHTMLWithCodeHighlighting(contentContainer, basicSanitizeInput(aiMessage));
+                                        
                                         // Mark this message as a non-reasoning model response
                                         aiMessageElement.dataset.hasThinking = 'false';
                                     }

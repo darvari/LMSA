@@ -301,3 +301,39 @@ pre[data-multiline="true"]::after {
 
     /* Monaco Editor removed - language indicators and scroll arrows removed */
 }
+
+/* Highlight.js Integration Styles */
+/* Ensure highlight.js works with existing code block styling */
+pre code.hljs {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+}
+
+/* Ensure code blocks with highlight.js maintain proper styling */
+pre:has(code.hljs) {
+    background-color: rgba(39, 40, 34, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 0.75rem !important;
+    padding: 1rem !important;
+    margin: 1rem 0 !important;
+    overflow-x: auto !important;
+    position: relative !important;
+}
+
+/* Dark theme support for highlight.js */
+[data-theme="dark"] pre:has(code.hljs) {
+    background-color: rgba(39, 40, 34, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Light theme support for highlight.js */
+[data-theme="light"] pre:has(code.hljs) {
+    background-color: rgba(248, 249, 250, 0.9) !important;
+    border-color: rgba(222, 226, 230, 0.5) !important;
+}

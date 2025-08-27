@@ -10,7 +10,7 @@ import { initializeChatHistoryTouchHandler } from './chat-history-touch-handler.
 import { initializeSettingsModalTouchHandler } from './settings-modal-touch-handler.js';
 import { initializeSidebarTouchHandler } from './sidebar-touch-handler.js';
 // File preview touch handler removed
-import { handleScroll, setDebugEnabled, wasRefreshDueToCodeGeneration, getLastActiveChatId, clearRefreshDueToCodeGenerationFlag, isAndroidWebView } from './utils.js';
+import { handleScroll, setDebugEnabled, wasRefreshDueToCodeGeneration, getLastActiveChatId, clearRefreshDueToCodeGenerationFlag, isAndroidWebView, initializeCodeBlockObserver } from './utils.js';
 import { initializeExportImport } from './export-import.js';
 import { initializeModelManager } from './model-manager.js';
 import { initializeWhatsNew } from './whats-new.js';
@@ -175,6 +175,9 @@ async function initializeApp() {
     
     initializeExportImport();
     initializeWhatsNew();
+    
+    // Initialize code block observer for syntax highlighting
+    initializeCodeBlockObserver();
     
     updateConfirmationModalTheme();
     updateExportImportModalsTheme();
